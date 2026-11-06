@@ -14,7 +14,7 @@ export function VideoExamples({ mode, onApply }: { mode: Mode; onApply: (example
   const [applying, setApplying] = useState(false);
   const items: VideoExample[] = examples[mode];
   const example = items[selected];
-  const modeName = { reference: "参考图生视频", replacement: "角色替换", motion: "动作迁移" }[mode];
+  const modeName = { reference: "图生音视频", replacement: "角色替换", motion: "动作迁移" }[mode];
   const apply = async () => {
     setApplying(true);
     try { await onApply(example); } finally { setApplying(false); }
@@ -37,7 +37,7 @@ const textVideoPrompts = [
 
 export function TextVideoExamples({ onApply }: { onApply: (prompt: string) => void }) {
   return <section className="video-examples text-video-examples">
-    <div className="video-examples-heading"><div><h2>文字灵感</h2><p>选择一段提示词，开始文生视频</p></div><Sparkles size={20} aria-hidden="true" /></div>
+    <div className="video-examples-heading"><div><h2>文字灵感</h2><p>选择一段提示词，开始文生音视频</p></div><Sparkles size={20} aria-hidden="true" /></div>
     <div className="text-video-prompt-list">{textVideoPrompts.map(item => <article key={item.title}><h3>{item.title}</h3><p>{item.prompt}</p><button type="button" onClick={() => onApply(item.prompt)}><Sparkles size={15}/>使用提示词</button></article>)}</div>
   </section>;
 }

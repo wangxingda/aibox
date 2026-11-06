@@ -21,7 +21,7 @@ const categories = ["热门趋势", "角色扮演🎬", "🎃有趣的万圣节"
 const toolSlugs = ["ai-genjutsu-video-edit", "ai-ad-generator", "ai-video-clone", "ai-avatar", "ai-product-avatar", "ai-motion-control", "florida-meme", "ai-virtual-try-on", "infinite-camera-angles", "ai-lip-sync", "ai-video-extender", "ai-video-enhancer"];
 const tools = [["AI Genjutsu视频魔改", "随心改变视频人物与场景，让创意突破现实。"], ["AI广告生成器", "为您的网店制作吸引人的产品视频和促销海报。"], ["AI 视频广告克隆", "使用您的商品和参考视频，复刻爆款视频风格。"], ["AI数字人", "让任意角色自然开口并动起来，快速生成各类视频。"], ["AI商品数字人", "商品图直接生成出镜展示视频，省去真人拍摄。"], ["AI动作迁移", "用AI捕捉视频的运动信息，让不同角色复用同一套动作。"], ["AI佛罗里达梗", "一键随机生成佛罗里达梗视频。"], ["AI试穿", "在不同人物上虚拟试穿各种服装。"], ["无限机位视角", "普通视频秒变多机位大片。"], ["AI 对口型", "让照片人物跟随音频自然对口型。"], ["AI视频延长", "一键续接视频后续画面。"], ["AI视频画质增强", "在线提升视频清晰度与分辨率。"]];
 const nav = [{name:"首页", href:"create", icon:Home}, {name:"灵感", href:"explore", icon:Lightbulb}, {name:"视频", href:"image-to-video", icon:Video}, {name:"图片", href:"text-to-image", icon:ImageIcon}, {name:"工作室", href:"ai-tools", icon:Gift}, {name:"玩法模板", href:"effects", icon:Images}, {name:"资产", href:"my", icon:FolderOpen}];
-const videoTabs = [["参考图生视频", "image-to-video"], ["文生视频", "text-to-video"], ["角色替换", "character-replacement"], ["动作迁移", "motion-transfer"]];
+const videoTabs = [["图生音视频", "image-to-video"], ["文生音视频", "text-to-video"], ["角色替换", "character-replacement"], ["动作迁移", "motion-transfer"]];
 const imageTabs = [["文生图", "text-to-image"], ["图片编辑", "image-edit"]];
 const tabIcons: Record<string, typeof Video> = { "image-edit": WandSparkles, "text-to-image": ImagePlus, "image-to-video": Clapperboard, "text-to-video": Text, "character-replacement": UserRound, "motion-transfer": Move };
 function UploadPreview({ file, size }: { file: File | null; size: number }) {
