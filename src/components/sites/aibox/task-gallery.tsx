@@ -124,7 +124,7 @@ export function TaskGallery({ user, authLoading, authError, kind }: Props) {
             </div> : task.outputs.length === 0 ? <div className="task-card-placeholder"><span>{task.kind === "image" ? "图片任务" : "视频任务"}</span></div> : null}
             {task.error && <p className="task-card-error" role="alert">{task.error}</p>}
             {task.outputs.map((output, index) => task.kind === "image"
-              ? <a className="task-card-media task-card-image" href={output.url} target="_blank" rel="noreferrer" key={output.url}><img src={output.url} alt={`生成结果 ${index + 1}`} loading="lazy" /></a>
+              ? <a className="task-card-media task-card-image" href={output.url} target="_blank" rel="noreferrer" key={output.url}><img src={output.url} alt={`生成结果 ${index + 1}`} loading="lazy"  decoding="async"/></a>
               : <video className="task-card-media task-card-video" key={output.url} src={output.url} controls preload="metadata" />)}
             {task.status === "completed" && <div className="task-card-actions">
               <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
