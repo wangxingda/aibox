@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 from sqlalchemy import inspect, select, text, update
 from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.schema import CreateColumn
 
 from .config import settings
 from .db import Base, SchemaMigration, Task, TaskEvent, TaskInputAsset, TaskOutput, Upload, engine
@@ -18,6 +19,26 @@ VERSION = '20261106_01_task_relations'
 PROGRESS_VERSION = '20261106_02_task_progress'
 UPLOAD_DEDUP_VERSION = '20261106_03_upload_dedup'
 log = logging.getLogger(__name__)
+
+def sync_additive_schema(connection, metadata):
+    """Create new tables and safely add ordinary columns to existing tables."""
+    metadata.create_all(connection)
+    connection.commit()
+    inspector = inspect(connection)
+    preparer = connection.dialect.identifier_preparer
+    for table in metadata.sorted_tables:
+        existing = {column['name'] for column in inspector.get_columns(table.name, schema=table.schema)}
+        for column in table.columns:
+            if column.name in existing:
+                continue
+            if column.primary_key or column.foreign_keys or column.unique or column.index or any(column.name in index.columns for index in table.indexes) or any(column.name in constraint.columns for constraint in table.constraints if constraint.__class__.__name__ == 'UniqueConstraint'):
+                raise RuntimeError(f'New column {table.fullname}.{column.name} has constraints or indexes; an explicit migration is required')
+            if not column.nullable and column.server_default is None:
+                raise RuntimeError(f'New non-null column {table.fullname}.{column.name} requires a server_default or an explicit migration')
+            definition = str(CreateColumn(column).compile(dialect=connection.dialect))
+            connection.exec_driver_sql(f'ALTER TABLE {preparer.format_table(table)} ADD COLUMN {definition}')
+            connection.commit()
+            log.info('Added column %s.%s', table.fullname, column.name)
 
 def migrate(database=engine):
     with database.connect() as connection:
@@ -28,7 +49,6 @@ def migrate(database=engine):
                 raise RuntimeError('Could not acquire schema migration lock')
             connection.commit()
         try:
-            # New tables only. Existing columns are preserved for rolling compatibility.
             Base.metadata.create_all(connection)
             connection.commit()
             upload_columns = {item['name'] for item in inspect(connection).get_columns('uploads')}
@@ -39,6 +59,7 @@ def migrate(database=engine):
             if 'progress' not in task_columns:
                 connection.execute(text('ALTER TABLE tasks ADD COLUMN progress INTEGER NULL DEFAULT 0'))
                 connection.commit()
+            sync_additive_schema(connection, Base.metadata)
             existing = {item['name'] for item in inspect(connection).get_indexes('tasks')}
             for index in Task.__table__.indexes:
                 if index.name in {'ix_tasks_user_kind_created_id', 'ix_tasks_user_created_id'} and index.name not in existing:
