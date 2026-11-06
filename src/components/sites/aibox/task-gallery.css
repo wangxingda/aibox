@@ -129,7 +129,7 @@
   .workspace .backend-task-list article.task-card { transition: none; }
 }
 
-.task-card-actions { position: absolute; right: 8px; bottom: 8px; left: 8px; z-index: 2; display: flex; align-items: center; gap: 6px; overflow-x: auto; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }
+.task-card-actions { display: flex; flex: 0 0 42px; align-items: flex-end; gap: 6px; overflow-x: auto; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }
 .task-card:hover .task-card-actions, .task-card:focus-within .task-card-actions { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .task-card-actions a, .workspace .task-card-actions button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 5px; min-height: 32px; padding: 6px 8px; border: 1px solid #39494b; border-radius: 10px; background: #263133; color: #e4f1f1; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; cursor: pointer; }
 .task-card-actions a:first-child { border-color: #4c8587; background: #294649; color: #aaf2ed; }
@@ -137,5 +137,3 @@
 .workspace .task-card-actions button:hover { border-color: #9d6059; background: #4b302d; color: #ffd4ca; }
 .task-card-actions button:disabled { opacity: .6; cursor: wait; }
 @media (hover: none) { .task-card-actions { opacity: 1; pointer-events: auto; transform: none; } }
-
-.task-card-video .task-card-actions { bottom: 48px; }
