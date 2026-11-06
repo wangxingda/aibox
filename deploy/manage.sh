@@ -52,6 +52,17 @@ case "$command_name" in
       printf '%s\n' '当前分支没有上游分支，请先配置 Git 上游。' >&2
       exit 1
     fi
+    branch=$(git -C "$root_dir" symbolic-ref --quiet --short HEAD)
+    upstream_remote=$(git -C "$root_dir" config --get "branch.$branch.remote")
+    remote_url=$(git -C "$root_dir" remote get-url "$upstream_remote")
+    case "$remote_url" in
+      https://github.com/*)
+        ssh_url="git@github.com:${remote_url#https://github.com/}"
+        git -C "$root_dir" remote set-url "$upstream_remote" "$ssh_url"
+        ;;
+      ssh://*|*@*:*) ;;
+      *) printf '%s\n' '上游仓库必须使用 SSH 地址；请先配置 Git 远端。' >&2; exit 1 ;;
+    esac
     git -C "$root_dir" pull --ff-only
     old_images=()
     for image in aibox-api:latest aibox-worker:latest aibox-frontend:latest; do
