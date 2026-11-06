@@ -27,5 +27,5 @@ export function AssetGallery({ user, authLoading, authError }: { user: BackendUs
   if (loading && !assets.length) return <div className="task-gallery-empty" role="status">正在加载素材…</div>;
   if (error && !assets.length) return <div className="task-gallery-empty" role="alert">{error}</div>;
   if (!assets.length) return <div className="task-gallery-empty"><p>暂无素材，上传参考图片后可在这里查看</p><Link href="/create" className="ws-gradient backend-start">开始创作</Link></div>;
-  return <div className="task-gallery"><div className="asset-grid">{assets.map(asset => <a key={asset.id} href={asset.url} target="_blank" rel="noreferrer"><img src={asset.url} alt="已上传的图片" loading="lazy"/></a>)}</div>{error && <p className="task-gallery-error" role="alert">{error}</p>}{more && <button className="task-gallery-more" onClick={() => setPageCount(count => count + 1)}>加载更多</button>}</div>;
+  return <div className="task-gallery"><div className="asset-grid">{assets.map(asset => <a key={asset.id} href={asset.url} target="_blank" rel="noreferrer"><img src={asset.url} alt="已上传的图片" loading="lazy" decoding="async"/></a>)}</div>{error && <p className="task-gallery-error" role="alert">{error}</p>}{more && <button className="task-gallery-more" onClick={() => setPageCount(count => count + 1)}>加载更多</button>}</div>;
 }
