@@ -1,12 +1,12 @@
 # Python 后端
 
-FastAPI 提供账户、图片上传、模型目录和生成任务接口；MySQL 是账户与任务的持久化存储，Redis 是任务状态短期缓存。独立 worker 从 MySQL 领取任务，调用标准 ComfyUI API，并通过 ComfyUI WebSocket 接收节点执行进度、通过 history 确认最终结果。Next.js 通过 `/api/*` 代理访问后端，因此浏览器不需要 ComfyUI 地址或凭据。
+FastAPI 提供账户、图片和视频上传、模型目录与生成任务接口；MySQL 是账户与任务的持久化存储，Redis 是任务状态短期缓存。独立 worker 从 MySQL 领取任务，调用标准 ComfyUI API，并通过 ComfyUI WebSocket 接收节点执行进度、通过 history 确认最终结果。Next.js 通过 `/api/*` 代理访问后端，因此浏览器不需要 ComfyUI 地址或凭据。
 
 ## 本地运行
 
 1. 将 `.env.example` 复制为 `.env`，修改 `JWT_SECRET`（至少 32 位随机字符）、数据库密码、Redis 地址和 `COMFYUI_URL`。`CORS_ORIGINS` 填写实际浏览器访问的前端地址，以逗号分隔；HTTPS 部署时设置 `COOKIE_SECURE=true`。Compose 示例的 MySQL 密码建议只使用 URL 安全字符。
 2. 安装 Docker 后，在 `backend` 目录运行 `docker compose up --build`。这会启动独立的 MySQL、Redis、API 和 worker。若 ComfyUI 运行在宿主机，macOS/Windows Docker 中可将 `COMFYUI_URL` 设置为 `http://host.docker.internal:8188`；远程服务器填写可达的私有地址。工作流目录以只读方式挂载，上传目录由 API 和 worker 共享。
-3. 在项目根目录运行 `npm run dev`；前端代理默认访问 `http://127.0.0.1:8000`。若后端端口不同，启动 Next.js 前设置 `BACKEND_URL`。API 文档为 `http://127.0.0.1:8000/docs`。
+3. 在项目根目录运行 `npm run dev`；未配置 `BACKEND_URL` 时前端代理访问 `http://127.0.0.1:8000`。根目录 `.env.example` 使用本机开发端口 `18000`；使用此 Compose 示例时应在 `.env.local` 设置 `BACKEND_URL=http://127.0.0.1:8000`。Compose API 文档为 `http://127.0.0.1:8000/docs`。
 
 不使用 Docker 时，在 `backend` 目录创建虚拟环境，执行 `pip install -r requirements.txt`，启动自己的 MySQL 和 Redis，再分别执行 `uvicorn app.main:app --host 127.0.0.1 --port 8000` 和 `python -m app.worker`。首次启动会创建数据表。已有旧版数据时，请先备份并停止 API 和 worker，运行 `python -m app.migrate` 完成增量升级。具体数据结构、交互与升级步骤见 [数据结构与交互约定](docs/data-model.md)。
 
@@ -33,7 +33,15 @@ FastAPI 提供账户、图片上传、模型目录和生成任务接口；MySQL 
 }
 ```
 
-`inputs` 的值是 `节点ID.输入字段`，支持 `prompt`、`image`、`image2`、`video`、`seed`、`quality`、`ratio`、`duration`；`seed` 自动随机生成。配置 `value_maps` 可转换比例与时长等枚举值，否则值按前端原样传入，因此若工作流需要数字宽高、帧数或其他类型，需先按具体工作流扩展转换逻辑，不能直接套用示例。参考图片和驱动视频会上传到 ComfyUI 的 `/upload/image`；任务通过 `/prompt` 提交，以 `/history/{prompt_id}` 查询状态并由 `/view` 代理输出。视频工作流必须在 history 的 `videos`、`gifs` 或 `images` 输出中提供 `filename`、`subfolder`、`type`。完成配置后重启 API 和 worker 以刷新配置缓存。
+`inputs` 的值是 `节点ID.输入字段`，也可使用目标数组将同一个值写入多个节点。支持 `prompt`、`image`、`image2`、`video`、`seed`、`quality`、`ratio`、`duration`；`seed` 自动随机生成。`requires_prompt`、`requires_image`、`requires_second_image`、`requires_video` 定义必填项；`default_prompt`、`optional_input_defaults` 和 `static_inputs` 分别设置默认提示词、可选输入默认值和固定节点值。`modes` 控制前端展示，`hidden` 可保留旧工作流兼容性，`output_nodes` 限定需要收集的输出节点。
+
+配置 `value_maps` 可转换比例与时长等枚举值，否则值按前端原样传入，因此若工作流需要数字宽高、帧数或其他类型，需先按具体工作流扩展转换逻辑，不能直接套用示例。参考图片和驱动视频会上传到 ComfyUI 的 `/upload/image`；任务通过 `/prompt` 提交，以 `/history/{prompt_id}` 查询状态并由 `/view` 代理输出。视频工作流必须在 history 的 `videos`、`gifs` 或 `images` 输出中提供 `filename`、`subfolder`、`type`。完成配置后重启 API 和 worker 以刷新配置缓存。
+
+## 主要 API
+
+接口的完整参数以运行中的 `/docs` 为准。注册、登录、登出和当前账户接口位于 `/api/auth/`；`GET /api/models` 返回当前可见模型及输入要求。`POST /api/uploads` 上传图片，`POST /api/uploads/video` 上传驱动视频，`GET /api/uploads` 返回当前用户的图片素材；素材内容通过 `/api/uploads/{id}/content` 读取。重复素材按用户和文件内容去重。
+
+`POST /api/tasks` 创建任务，可通过 `Idempotency-Key` 防止重复提交；`GET /api/tasks` 和 `GET /api/tasks/{id}` 获取列表及详情，`/events` 获取状态事件，`/outputs/{index}` 读取或下载结果。`DELETE /api/tasks/{id}` 仅允许所有者删除已完成任务的站内记录；上传素材和 ComfyUI 输出文件不会随之删除。所有素材、任务及结果接口均校验账号归属。
 
 一个任务只尝试提交一次 `/prompt`。若连接中断、返回 5xx、worker 在提交时退出或任务超时，状态会变成“待确认”；请在 ComfyUI 侧按数据库里的 `comfy_prompt_id` 核对，系统不会自动重试以避免重复生成。数据库中的 `queued` 和 `running` 任务可在 worker 重启后继续处理。输出目前保存在 ComfyUI，结果访问依赖其文件保留策略；本服务不会清理 ComfyUI 文件。
 

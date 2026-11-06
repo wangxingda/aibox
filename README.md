@@ -41,6 +41,8 @@ python3 -m venv backend/.venv
 backend/.venv/bin/pip install -r backend/requirements.txt
 ```
 
+首次配置时，将 `.env.example` 复制为 `.env.local`、将 `backend/.env.example` 复制为 `backend/.env`，并按实际环境填写数据库、Redis、JWT 和 ComfyUI 配置；已有配置的环境无需覆盖。`COMFYUI_URL` 可通过环境变量覆盖，示例值为 `http://www.360.cn/comfy_0.43.0_url`，以实际可访问的服务为准。
+
 在配置好并启动 MySQL 和 Redis 后，分别在三个终端执行：
 
 ```bash
@@ -75,6 +77,17 @@ redis-server --bind 127.0.0.1 --port 16379 \
 ```
 
 已有服务运行时不必重复执行。请勿把其他项目的 MySQL 或 Redis 当作本项目的专用实例。Docker 部署及工作流配置见 [后端指南](backend/README.md)。
+
+## 功能与数据
+
+- 图片功能包括文生图和图片编辑；视频功能包括参考图生视频、角色替换和动作迁移。各模式的输入要求以服务端模型目录和 [工作流说明](backend/README.md#配置工作流) 为准。
+- 图片和视频参考示例保存在 `public/sites/aibox/`，一键同款会填入对应提示词与可用的参考素材；实际生成效果取决于当前模型和参数。
+- 任务在当前页面的“我的作品”中显示状态、进度和结果；已完成任务支持编辑回填、下载和删除。素材按用户隔离，并按文件内容去重。
+- 工作流注册表是 `backend/workflows/registry.json`；新增或调整工作流后需要重启 API 与 worker。任务创建时会保存工作流快照，已排队任务不随注册表变更。
+
+## 部署状态
+
+本仓库提供后端 Docker Compose 示例和本机运行说明，尚未形成经过验证的生产部署方案。之前针对服务器 `49.233.86.246` 的部署尚未完成：服务器 SSH 主机密钥需要通过可信渠道核对，且尚未确认该服务器到 ComfyUI 的连通性。不要把本机测试结果当作服务器部署成功。
 
 ## 验证
 
