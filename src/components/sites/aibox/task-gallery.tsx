@@ -126,12 +126,12 @@ export function TaskGallery({ user, authLoading, authError, kind }: Props) {
             {task.outputs.map((output, index) => task.kind === "image"
               ? <a className="task-card-media task-card-image" href={output.url} target="_blank" rel="noreferrer" key={output.url}><img src={output.url} alt={`生成结果 ${index + 1}`} loading="lazy"  decoding="async"/></a>
               : <video className="task-card-media task-card-video" key={output.url} src={output.url} controls preload="metadata" />)}
+            </div>
             {task.status === "completed" && <div className="task-card-actions">
               <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
               {task.outputs.map((output, index) => <a href={`${output.url}?download=true`} download key={output.url} aria-label={`下载作品 ${index + 1}`}><Download size={16} />下载{task.outputs.length > 1 ? ` ${index + 1}` : ""}</a>)}
               <button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><Trash2 size={16} />{deleting === task.id ? "删除中" : "删除"}</button>
             </div>}
-            </div>
           </article>;
         })}
       </div>
