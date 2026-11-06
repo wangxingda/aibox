@@ -1,0 +1,100 @@
+{
+  "reference": [
+    {
+      "title": "参考图生视频 1",
+      "prompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] 3D cute plush animation, fixed tight frontal close-up for the full 5-second runtime. All visual details from <Picture 1> are fully preserved: the perfectly spherical fuzzy lavender-blue blueberry cat, its tiny short soft paws, no tail, no extended long limbs, the dark blue calyx crown on its head, pink blushed cheeks, tiny pink nose, the giant yellow gilled mushroom overhead, sun-dappled green moss ground, surrounding fern foliage, and warm soft golden natural sunlight. From 0.00s to 1.00s, the two small white fluffy paws gently shift to press softly on both sides of its tiny nose. From 1.00s to 3.00s, its mouth stays completely closed, its round pink cheeks puff slowly outward, its large brown eyes gradually squint tighter, its entire round fuzzy body trembles gently three distinct times in a row as if it strains very hard to hold back a sneeze, its paws never grow larger or change shape. From 3.00s to 5.00s, all movement stops abruptly, it opens its eyes wide to reveal a proud, pleased expression as if it successfully held back the sneeze, its paws still stay pressed against its nose, and it never jumps away or leaves its spot on the moss. No dialogue, no spoken lines, no visible text or subtitles appear anywhere.\n\noverall_soundscape: Soft muffled restrained nasal breathing and huffing sounds come from the small plush creature, paired with faint low wind rustling the gills of the large overhead mushroom and brushing against nearby fern fronds. No sneeze sound plays at any point in the clip.\n\nnon_diegetic_music: N/A",
+      "video": "/sites/aibox/video-examples/reference-1-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/reference-1-input.png",
+      "poster": "/sites/aibox/video-examples/reference-1-frame.jpg"
+    },
+    {
+      "title": "参考图生视频 2",
+      "prompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Premium live-action cinematic realism, shot with 50mm lens, shallow depth of field, low camera positioned at folding chair height with subtle natural handheld micro-drift. The exact man shown in <Picture 1> preserves 100% of his original visual identity: facial features, bucket hat with printed white Adidas trefoil logo, sunglasses, silver necklace, white t-shirt with exact gothic printed text \"KhiangteVillain\", black cargo pants, white Air Force 1 sneakers, seated position on the small black folding camp chair, and spatial relationship to the red dirt road. He remains completely calm, motionless and unbothered facing the camera at the opening, his right hand held in the snap-ready pose from the reference image. At 1.65 seconds, he makes one subtle, sharp natural finger snap, then keeps his right hand raised near his chest. In the background, the full jet-black wheel loader JCB visible in <Picture 1> accelerates at extreme speed down the red dirt road, preserving its full mechanical details: large heavy tires, enclosed operator cab, bright white work headlights, amber roof warning beacons, front loading bucket, hydraulic rams, and side safety railings. The JCB kicks up a long thick trail of red dust as it moves, its apparent size growing rapidly as it closes distance. At 2.5 seconds, the JCB hits a small earthen mound and launches fully airborne in slow motion, all four wheels suspended off the ground for an extended dramatic moment with motion blur on its body and trailing dust, while the man does not flinch, turn his head, or react at all to the machine behind him. At 5.5 seconds, the JCB lands heavily on the dirt behind the man, slides through a cloud of red dust, and comes to a full stop stationary directly behind his position by 8.0 seconds, its headlights glowing through the lingering floating dust. Over the remaining 4 seconds, the man slowly lowers his raised right hand, rests both hands calmly on his knees, while the misty layered green hills of Aizawl, Mizoram, with distant scattered hillside buildings and low drifting fog remain as the continuous background for the full 12-second shot.\n\noverall_soundscape: Heavy diesel engine rumble rises from a distant low throb to a full roaring high RPM tone as the loader accelerates, mixed with crunching gravel and dirt under its heavy tires, clattering mechanical hydraulics, and a heavy dull metallic thud on landing. Fine loose red soil patters softly as dust settles, while cool mountain wind blows gently through the surrounding roadside foliage.\n\nnon_diegetic_music: N/A",
+      "video": "/sites/aibox/video-examples/reference-2-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/reference-2-input.png",
+      "poster": "/sites/aibox/video-examples/reference-2-frame.jpg"
+    },
+    {
+      "title": "参考图生视频 3",
+      "prompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Stylized dark fantasy anime, low angle shot that perfectly preserves the exact character scale, viewing perspective, composition, character design, glossy black full-body outfit, glowing magenta eyes, long swirling black hair, and dystopian ruined city background with the distant towering dark spire and red haloed celestial body from the reference image. The camera stays completely static to maintain the original framing for the full 10 second duration. The female character walks forward at an unhurried slow pace, her long flowing hair drifts softly outward in sync with her movement. The glowing neon red, cyan and deep purple swirling liquid beneath her boot churns continuously, and splashes of the vivid viscous liquid rise gradually upward in smooth curved arcs around her feet, keeping full visual consistency with the initial reference art style at all times.\n\noverall_soundscape: Deep low ambient rumble from the abandoned city structures, wet gurgling and sloshing sounds from the churning glowing liquid, faint soft splash noises as droplets of the swirling viscous fluid lift into the air.\n\nnon_diegetic_music: Dark atmospheric ambient score with slow, deep resonant synth pads, a subtle steady sub-bass pulse that matches the character's slow walking rhythm, no sharp peaks, keeping a heavy immersive mood throughout the clip.",
+      "video": "/sites/aibox/video-examples/reference-3-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/reference-3-input.png",
+      "poster": "/sites/aibox/video-examples/reference-3-frame.jpg"
+    },
+    {
+      "title": "参考图生视频 4",
+      "prompt": "Create a fast, densely cut character edit using the character in @[character ref]. Preserve their identity, proportions, outfit, and original rendering style. Let their appearance and attitude determine the setting, movement, lighting, and music. Open with their strongest gesture already underway. Build around one distinctive action, carrying its motion across cuts so each new angle advances it. Snap between extreme details, expressive close-ups, and full-body movement. Use at least 30 hard cuts in accelerating bursts, sudden changes in framing, and whip pans that land directly on the next action. Match movement direction across shots to keep the character readable at speed. Synchronize cuts with driving percussion, sharp sound accents, and sounds drawn from the character’s materials. Keep momentum continuous through the payoff, ending sharply on the strongest pose without lingering. Avoid unrelated props, invented powers, and costume changes.",
+      "video": "/sites/aibox/video-examples/reference-4-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/reference-4-input.jpg",
+      "poster": "/sites/aibox/video-examples/reference-4-frame.jpg"
+    }
+  ],
+  "replacement": [
+    {
+      "title": "角色替换 1",
+      "prompt": "角色自然地做出动作和表情",
+      "video": "/sites/aibox/video-examples/replacement-1-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/replacement-1-input.png",
+      "inputVideo": "/sites/aibox/video-examples/replacement-1-input.mp4",
+      "poster": "/sites/aibox/video-examples/replacement-1-frame.jpg"
+    },
+    {
+      "title": "角色替换 2",
+      "prompt": "",
+      "video": "/sites/aibox/video-examples/replacement-2-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/replacement-2-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/replacement-2-input.mp4",
+      "poster": "/sites/aibox/video-examples/replacement-2-frame.jpg"
+    },
+    {
+      "title": "角色替换 3",
+      "prompt": "",
+      "video": "/sites/aibox/video-examples/replacement-3-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/replacement-3-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/replacement-3-input.mp4",
+      "poster": "/sites/aibox/video-examples/replacement-3-frame.jpg"
+    },
+    {
+      "title": "角色替换 4",
+      "prompt": "角色自然地做出动作和表情",
+      "video": "/sites/aibox/video-examples/replacement-4-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/replacement-4-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/replacement-4-input.mp4",
+      "poster": "/sites/aibox/video-examples/replacement-4-frame.jpg"
+    }
+  ],
+  "motion": [
+    {
+      "title": "动作迁移 1",
+      "prompt": "人物外观描述：共有两只体态圆胖的短毛猫，靠前的猫通体覆盖纯灰色短毛，长有橙黄色的圆眼睛，整体躯干饱满敦实。靠后的猫主体毛发为白色，分布有浅灰色虎斑纹路，长有绿色的圆眼睛，鼻头呈浅橘粉色。\n背景描述：背景为纯净的浅紫色哑光墙面，地面是光滑带有反光效果的浅灰色大瓷砖，整体被紫色柔光照亮。",
+      "video": "/sites/aibox/video-examples/motion-1-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/motion-1-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/motion-1-input.mp4",
+      "poster": "/sites/aibox/video-examples/motion-1-frame.jpg"
+    },
+    {
+      "title": "动作迁移 2",
+      "prompt": "人物外观描述：有着深棕微湿的短卷发，榛绿色眼睛，皮肤质感自然真实，身穿灰黑色圆领短袖T恤。\n背景描述：背景为浴室场景，可见米色瓷砖墙面、金属淋浴喷头、带铜色边框的玻璃，镜面表面分布有水渍。",
+      "video": "/sites/aibox/video-examples/motion-2-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/motion-2-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/motion-2-input.mp4",
+      "poster": "/sites/aibox/video-examples/motion-2-frame.jpg"
+    },
+    {
+      "title": "动作迁移 3",
+      "prompt": "Perform the exact hand dance and upper-body motion of the driving video, matching the gesture order, timing, tempo and head turns. The reference image defines the only facial identity, hair, clothes and room. The driving video supplies motion only. Keep the fixed camera, image composition and nighttime window/curtain/bed background stable. Natural relaxed shoulders, anatomically coherent hands and fingers, realistic cloth motion. Preserve original driving audio. Do not copy the driving actor face, hair, sweater or driving-video background. Preserve only this manhua character's specific slender eyes, high nose, delicate lips and tapered face, long black high ponytail and ivory ink-bamboo robe with black sleeves. His identity must not become the motion-video actor or another young man. Sleeves and ponytail follow the gestures naturally.",
+      "video": "/sites/aibox/video-examples/motion-3-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/motion-3-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/motion-3-input.mp4",
+      "poster": "/sites/aibox/video-examples/motion-3-frame.jpg"
+    },
+    {
+      "title": "动作迁移 4",
+      "prompt": "人物外观描述：是一只橘色幼猫，露出浅橘色短毛，有着大圆黑眼睛、粉色鼻头，身穿浅黄仿花生外壳纹理的连体服饰，服饰顶部带有两个角状凸起装饰。\n背景描述：两侧是成排种植的青绿玉米植株，地面是分布着零星嫩绿色小幼苗的棕褐色田垄泥土，上方是布满灰白云层的天空。",
+      "video": "/sites/aibox/video-examples/motion-4-output.mp4",
+      "inputImage": "/sites/aibox/video-examples/motion-4-input.jpg",
+      "inputVideo": "/sites/aibox/video-examples/motion-4-input.mp4",
+      "poster": "/sites/aibox/video-examples/motion-4-frame.jpg"
+    }
+  ]
+}

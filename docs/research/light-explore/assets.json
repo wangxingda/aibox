@@ -1,0 +1,137 @@
+[
+  {
+    "name": "asset-0.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/minimax-h3-banner-v2.fe084eb08484e1bd.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-1.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/agent-conversation-banner.ab877b5e9e7180dc.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-2.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/sekotalk-v3-banner.5da28114dd79c0aa.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-3.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/sekotalk-v3-multi-banner.569acce25e5d0790.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-4.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/workflow-banner.3644f5b3b3429843.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-5.jpg",
+    "url": "https://cdn.x2v.light-ai.top/template/frontend-assets/images/banners/invite-friends-banner.561b2635e1f58490.jpg",
+    "status": 200
+  },
+  {
+    "name": "asset-6.png",
+    "url": "https://x2v.light-ai.top/images/agent-mode-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-7.png",
+    "url": "https://x2v.light-ai.top/images/avatar-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-8.png",
+    "url": "https://x2v.light-ai.top/images/video-generation-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-9.png",
+    "url": "https://x2v.light-ai.top/images/image-generation-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-10.png",
+    "url": "https://x2v.light-ai.top/images/motion-control-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-11.png",
+    "url": "https://x2v.light-ai.top/images/workflow-card.png",
+    "status": 200
+  },
+  {
+    "name": "asset-12.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/1b04fe7e-966d-475c-b54a-1d5a9fe73100-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-13.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/133038f0-f283-462b-9372-60eaac83c993-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-14.png",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/96baa1e1-e69f-47a2-a856-592f3c099eab-output_image.png?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-15.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/6f0b5956-1ac2-4dd4-afe7-3e36f4107cd9-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-16.png",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/f9b47429-5056-450d-8187-1b3f09a5797f-output_image.png?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-17.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/27b25b43-bc8b-4004-acc1-8634d105a83f-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-18.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/433fc18a-4263-446e-8eba-cbe4d66f7fd4-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-19.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/fb5daaa7-f36a-4aba-b2bc-4ebe2667536f-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-20.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/3646a7fc-7e49-4a5d-a6ee-8d4ef5c38366-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-21.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/98009f99-4648-4366-b778-7ecbe51959a9-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-22.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/90991297-a20a-4607-b5dc-28fe5eb18e17-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-23.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/427df1cb-f4b7-4c0d-b8c3-0b58c338c048-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-24.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/5a56fdb2-695a-4be8-995c-ea56b33d5a4e-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-25.png",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/c158d4aa-f49a-475a-93f7-0b1630392e9c-output_image.png?x-tos-process=image/resize,w_960",
+    "status": 200
+  },
+  {
+    "name": "asset-26.jpg",
+    "url": "https://cdn.x2v.light-ai.top/lightx2v_data/d48ee78f-74c7-4bb1-b789-941ef2311e11-output_video.poster.jpg?x-tos-process=image/resize,w_960",
+    "status": 200
+  }
+]

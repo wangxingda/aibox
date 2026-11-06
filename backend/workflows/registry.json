@@ -1,0 +1,179 @@
+{
+  "Qwen Image 2.1 文生图": {
+    "kind": "image",
+    "file": "qwen_image_2_1_t2i.json",
+    "requires_image": false,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "1 MP · 工作流固定",
+    "inputs": {
+      "prompt": "459:474.on_false",
+      "ratio": "13.aspect_ratio",
+      "seed": "459:458.seed"
+    },
+    "value_maps": {
+      "ratio": {
+        "16:9": "16:9 (Widescreen)",
+        "9:16": "9:16 (Portrait Widescreen)",
+        "1:1": "1:1 (Square)"
+      }
+    },
+    "modes": [
+      "text-to-image"
+    ],
+    "default_ratio": "1:1"
+  },
+  "Qwen Image 2.1 图片编辑": {
+    "kind": "image",
+    "file": "qwen_image_2_1_image_edit.json",
+    "requires_image": true,
+    "requires_second_image": false,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "由参考图片与工作流决定",
+    "inputs": {
+      "prompt": "459:484.on_false",
+      "image": "470.image",
+      "image2": "502.image",
+      "seed": "459:458.seed"
+    },
+    "modes": [
+      "image-edit"
+    ],
+    "default_ratio": "1:1",
+    "optional_input_defaults": {
+      "image2": "None"
+    }
+  },
+  "Pika H3 参考图生视频": {
+    "kind": "video",
+    "file": "pika_h3_flex_ref2va.json",
+    "requires_image": false,
+    "requires_second_image": false,
+    "requires_prompt": true,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "0.98 MP · 工作流固定",
+    "inputs": {
+      "prompt": "138.value",
+      "image": "152.image",
+      "image2": "151.image",
+      "ratio": "115.aspect_ratio",
+      "duration": "132.value",
+      "seed": "129.noise_seed"
+    },
+    "optional_input_defaults": {
+      "image": "None",
+      "image2": "None"
+    },
+    "value_maps": {
+      "ratio": {
+        "16:9": "16:9 (Widescreen)",
+        "9:16": "9:16 (Portrait Widescreen)",
+        "1:1": "1:1 (Square)"
+      },
+      "duration": {
+        "5s": 5,
+        "10s": 10
+      }
+    },
+    "modes": [
+      "image-to-video",
+      "refer-to-video"
+    ],
+    "default_ratio": "16:9",
+    "output_nodes": [
+      "92"
+    ]
+  },
+  "Wan SCAIL2 角色替换": {
+    "kind": "video",
+    "file": "wan21_scail2_character_replacement.json",
+    "requires_image": true,
+    "requires_video": true,
+    "requires_prompt": false,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "由工作流与视频决定",
+    "inputs": {
+      "prompt": [
+        "213:3.text",
+        "262:258.text"
+      ],
+      "image": "30.image",
+      "video": "155.file"
+    },
+    "modes": [
+      "character-replacement"
+    ],
+    "default_ratio": "16:9",
+    "output_nodes": [
+      "271"
+    ],
+    "default_prompt": "A person matching the reference image follows the movements in the driving video.",
+    "static_inputs": {
+      "213:191.text": "person",
+      "262:242.text": "person"
+    }
+  },
+  "Wan Animate2 动作迁移": {
+    "kind": "video",
+    "file": "wan_animate2_distilled.json",
+    "requires_image": true,
+    "requires_video": true,
+    "requires_prompt": false,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "由工作流与视频决定",
+    "inputs": {
+      "prompt": "605.value",
+      "image": "189.image",
+      "video": "240.file"
+    },
+    "modes": [
+      "motion-transfer"
+    ],
+    "default_ratio": "16:9",
+    "output_nodes": [
+      "246"
+    ],
+    "default_prompt": "The character in the reference image follows the movements in the driving video.",
+    "static_inputs": {
+      "604.value": "The character follows the motion in the driving video."
+    }
+  },
+  "MiniMax H3 参考图转视频": {
+    "kind": "video",
+    "file": "minimax_h3_r2v.json",
+    "hidden": true,
+    "requires_image": true,
+    "requires_second_image": true,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "0.4 MP · 工作流固定",
+    "inputs": {
+      "prompt": "138.value",
+      "image": "137.image",
+      "image2": "139.image",
+      "ratio": "115.aspect_ratio",
+      "duration": "132.value",
+      "seed": "129.noise_seed"
+    },
+    "value_maps": {
+      "ratio": {
+        "16:9": "16:9 (Widescreen)",
+        "9:16": "9:16 (Portrait Widescreen)",
+        "1:1": "1:1 (Square)"
+      },
+      "duration": {
+        "5s": 5,
+        "10s": 10
+      }
+    },
+    "modes": [
+      "image-to-video",
+      "refer-to-video"
+    ],
+    "default_ratio": "16:9"
+  }
+}

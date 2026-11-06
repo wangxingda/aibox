@@ -1,0 +1,176 @@
+.generation-settings-popover {
+  position: absolute;
+  z-index: 8;
+  width: 400px;
+  max-width: calc(100vw - 120px);
+}
+
+.generation-settings-create {
+  right: 200px;
+  top: 120px;
+}
+
+.generation-settings-editor {
+  left: calc(100% + 8px);
+  top: 0;
+}
+
+.generation-settings {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  color: #e4e9e9;
+  background: #1b1f20;
+  border: 1px solid #353c3d;
+  border-radius: 14px;
+  box-shadow: 0 14px 40px #0009;
+}
+
+.generation-settings-group {
+  min-width: 0;
+  padding: 10px 12px;
+  background: #252a2b;
+  border-radius: 10px;
+}
+
+.generation-settings-group h3 {
+  margin: 0 0 7px;
+  color: #aeb8b9;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.generation-settings-note {
+  margin: -3px 0 8px;
+  color: #768385;
+  font-size: 11px;
+}
+
+.resolution-options,
+.ratio-options,
+.duration-options {
+  display: grid;
+  gap: 4px;
+}
+
+.resolution-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ratio-options,
+.duration-options {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.settings-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #c2cbcc;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.settings-option:hover:not(:disabled) {
+  background: #303738;
+  color: #f3ffff;
+}
+
+.settings-option.selected {
+  background: #394344;
+  color: #dffcff;
+  font-weight: 700;
+}
+
+.settings-option:focus-visible {
+  outline: 2px solid #73d9e8;
+  outline-offset: 2px;
+}
+
+.settings-option:disabled {
+  color: #8e999a;
+  cursor: not-allowed;
+}
+
+.resolution-option,
+.duration-option {
+  height: 34px;
+  font-size: 13px;
+}
+
+.ratio-option {
+  min-height: 56px;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.ratio-icon {
+  display: block;
+  width: 14px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.ratio-icon-16-9 {
+  width: 18px;
+  height: 11px;
+}
+
+.ratio-icon-9-16 {
+  width: 10px;
+  height: 18px;
+}
+
+.ratio-icon-4-3 {
+  width: 14px;
+  height: 11px;
+}
+
+.ratio-icon-3-4 {
+  width: 11px;
+  height: 15px;
+}
+
+.ratio-icon-1-1 {
+  width: 13px;
+  height: 13px;
+}
+
+.ratio-icon-21-9 {
+  width: 20px;
+  height: 9px;
+}
+
+.settings-lock {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  color: #f6c66b;
+  fill: #f6c66b;
+  stroke: #252a2b;
+}
+
+@media (max-width: 900px) {
+  .generation-settings-popover {
+    width: min(400px, calc(100vw - 108px));
+    max-width: none;
+  }
+
+  .generation-settings-editor {
+    left: 0;
+    bottom: 52px;
+  }
+
+  .generation-settings-create {
+    right: 0;
+    top: calc(100% + 8px);
+  }
+}
