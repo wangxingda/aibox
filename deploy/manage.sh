@@ -3,11 +3,13 @@ set -euo pipefail
 
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 env_file="${AIBOX_ENV_FILE:-${root_dir}/../shared/.env}"
+backup_root="${AIBOX_BACKUP_DIR:-${root_dir}/../backups}"
 
 usage() {
   printf '%s\n' '用法: deploy/manage.sh {build|start|stop|restart|update|status|logs [服务名]}' \
     '默认读取项目目录同级 shared/.env，可通过 AIBOX_ENV_FILE 指定其他环境文件。' \
     'update 拉取当前分支的最新代码，构建镜像并更新服务；工作区必须干净。' \
+    'update 会备份数据库和上传文件并运行数据库迁移；可通过 AIBOX_BACKUP_DIR 指定备份目录。' \
     'stop、restart 和 update 保留数据库及上传文件。build 单独构建镜像。'
 }
 
@@ -39,8 +41,7 @@ case "$command_name" in
   start) "${compose[@]}" up -d --no-build ;;
   stop) "${compose[@]}" stop ;;
   restart)
-    "${compose[@]}" stop
-    "${compose[@]}" up -d --no-build
+    "${compose[@]}" restart api worker frontend
     ;;
   update)
     if [[ -n "$(git -C "$root_dir" status --porcelain)" ]]; then
@@ -59,9 +60,24 @@ case "$command_name" in
       fi
     done
     "${compose[@]}" build
-    "${compose[@]}" up -d --no-build
+    "${compose[@]}" up -d --no-build --wait mysql redis
+    "${compose[@]}" stop worker api
+    umask 077
+    mkdir -p "$backup_root"
+    backup_dir=$(mktemp -d "$backup_root/$(date -u +%Y%m%dT%H%M%SZ).XXXXXX")
+    printf '备份数据库和上传文件至 %s\n' "$backup_dir"
+    "${compose[@]}" exec -T mysql sh -c 'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysqldump -u root --single-transaction --routines --triggers --no-tablespaces "$MYSQL_DATABASE"' | gzip > "$backup_dir/mysql.sql.gz"
+    gzip -t "$backup_dir/mysql.sql.gz"
+    "${compose[@]}" run --rm --no-deps -T api python -c 'import sys, tarfile; t = tarfile.open(fileobj=sys.stdout.buffer, mode="w|gz"); t.add("/app/storage/uploads", arcname="uploads"); t.close()' > "$backup_dir/uploads.tar.gz"
+    tar -tzf "$backup_dir/uploads.tar.gz" > /dev/null
+    printf '%s\n' '备份校验通过，运行数据库迁移。'
+    if ! "${compose[@]}" run --rm --no-deps -T api python -m app.migrate; then
+      printf '数据库迁移失败，API 和 worker 保持停止；备份位于 %s。\n' "$backup_dir" >&2
+      exit 1
+    fi
+    "${compose[@]}" up -d --no-build --wait
     dangling_images=$("${docker_cmd[@]}" image ls --quiet --no-trunc --filter dangling=true)
-    for image_id in "${old_images[@]}"; do
+    for image_id in ${old_images[@]+"${old_images[@]}"}; do
       if printf '%s\n' "$dangling_images" | grep -Fxq -- "$image_id"; then
         if [[ -z "$("${docker_cmd[@]}" ps -aq --filter "ancestor=$image_id")" ]]; then
           if ! "${docker_cmd[@]}" image rm "$image_id"; then

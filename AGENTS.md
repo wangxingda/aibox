@@ -14,7 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `backend/app` 为 FastAPI、MySQL、Redis 和 ComfyUI worker；`backend/workflows` 为工作流；`backend/docs/data-model.md` 记录数据设计。
 - 浏览器只调用本站 API；账号、任务、上传和输出都必须按用户校验权限。
 - 任务提交保持幂等，保留工作流快照，对 ComfyUI 提交结果不确定时不得盲目重试。
-- 数据库变更使用可重复执行的迁移，运行前备份数据库与上传目录。测试必须使用独立测试数据库，测试会删除其中的表。
+- 数据库表、字段或数据变更必须同时编写可重复执行的版本化迁移并测试旧数据升级；仅更改模型不会迁移旧表。运行前备份数据库与上传目录。测试必须使用独立测试数据库，测试会删除其中的表。
 - `.env.local`、`backend/.env`、`backend/.local`、`backend/storage` 和 `.venv` 是本地私有数据，不要提交或在日志中输出凭据。
 - 变更服务前先确认进程、端口和运行中任务，不要停止无关服务。依赖和运行命令见 `README.md`。
 
