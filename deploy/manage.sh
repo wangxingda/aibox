@@ -52,8 +52,25 @@ case "$command_name" in
       exit 1
     fi
     git -C "$root_dir" pull --ff-only
+    old_images=()
+    for image in aibox-api:latest aibox-worker:latest aibox-frontend:latest; do
+      if image_id=$("${docker_cmd[@]}" image inspect --format '{{.Id}}' "$image" 2>/dev/null); then
+        old_images+=("$image_id")
+      fi
+    done
     "${compose[@]}" build
     "${compose[@]}" up -d --no-build
+    dangling_images=$("${docker_cmd[@]}" image ls --quiet --no-trunc --filter dangling=true)
+    for image_id in "${old_images[@]}"; do
+      if printf '%s\n' "$dangling_images" | grep -Fxq -- "$image_id"; then
+        if [[ -z "$("${docker_cmd[@]}" ps -aq --filter "ancestor=$image_id")" ]]; then
+          if ! "${docker_cmd[@]}" image rm "$image_id"; then
+            printf '旧镜像清理失败：%s\n' "$image_id" >&2
+          fi
+          dangling_images=$("${docker_cmd[@]}" image ls --quiet --no-trunc --filter dangling=true)
+        fi
+      fi
+    done
     ;;
   status) "${compose[@]}" ps ;;
   logs)
