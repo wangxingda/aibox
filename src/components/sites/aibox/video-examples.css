@@ -24,3 +24,8 @@
 .video-example-play { position: absolute; top: 8px; right: 8px; display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: #101719c9; }
 .video-example-title { position: absolute; right: 0; bottom: 0; left: 0; padding: 14px 6px 6px; background: linear-gradient(transparent,#000c); text-align: left; font-size: 11px; }
 @media (max-width: 800px) { .video-example-feature { grid-template-columns: 1fr; } .video-example-player { min-height: 240px; max-height: 320px; } .video-example-player video { max-height: 320px; } }
+.text-video-prompt-list { display: grid; gap: 12px; }
+.text-video-prompt-list article { padding: 18px; border: 1px solid #354143; border-radius: 12px; background: #202729; }
+.text-video-prompt-list h3 { margin: 0 0 8px; color: #f0f7f7; font-size: 15px; }
+.text-video-prompt-list p { margin: 0 0 14px; color: #c4d1d2; font-size: 13px; line-height: 1.7; }
+.workspace .text-video-prompt-list button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid #486a6c; border-radius: 8px; background: #294649; color: #b2eeeb; font-size: 12px; cursor: pointer; }

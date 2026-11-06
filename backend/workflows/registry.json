@@ -79,7 +79,8 @@
     },
     "modes": [
       "image-to-video",
-      "refer-to-video"
+      "refer-to-video",
+      "text-to-video"
     ],
     "default_ratio": "16:9",
     "output_nodes": [
