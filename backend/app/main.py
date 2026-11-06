@@ -76,6 +76,7 @@ class Credentials(BaseModel):
 class TaskInput(BaseModel):
     kind: Literal['image', 'video']
     model: str = Field(min_length=1, max_length=100)
+    mode: str | None = Field(default=None, max_length=50)
     prompt: str = Field(default='', max_length=8000)
     upload_id: str | None = None
     second_upload_id: str | None = None
@@ -284,7 +285,11 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
             if not upload.content_type.startswith(expected_type):
                 raise HTTPException(422, '上传素材类型不匹配')
     model_config = registry().get(data.model, {})
-    options = {'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
+    if data.mode and data.mode not in model_config.get('modes', []):
+        raise HTTPException(422, '当前模型不支持此创作模式')
+    if data.mode == 'text-to-video' and (data.upload_id or data.second_upload_id or data.video_upload_id):
+        raise HTTPException(422, '文生视频仅支持文字提示词')
+    options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
     try:
         workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None)
     except WorkflowError as exc:

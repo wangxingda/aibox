@@ -569,3 +569,29 @@ def test_video_upload_and_task_snapshot(client, tmp_path, monkeypatch):
     worker.submit(result.json()['id'])
     assert len(uploaded) == 2 and uploaded[1].endswith('.mp4')
     assert submitted[0]['prompt']['240']['inputs']['file'] == uploaded[1]
+
+
+def test_text_to_video_uses_pika_without_reference_images(client):
+    import shutil
+    from app.db import Session, TaskWorkflowSnapshot
+    source = Path(__file__).resolve().parents[1] / 'workflows'
+    target = Path(settings().workflow_config).parent
+    for name in ('registry.json', 'pika_h3_flex_ref2va.json'):
+        shutil.copy(source / name, target / name)
+    registry.cache_clear()
+    register(client)
+    payload = {'kind':'video', 'model':'Pika H3 参考图生视频', 'mode':'text-to-video', 'prompt':'海边日落', 'ratio':'16:9', 'duration':'5s'}
+    result = client.post('/api/tasks', json=payload)
+    assert result.status_code == 202
+    assert result.json()['options']['mode'] == 'text-to-video'
+    with Session() as session:
+        graph = session.get(TaskWorkflowSnapshot, result.json()['id']).workflow
+        assert graph['138']['inputs']['value'] == '海边日落'
+        assert graph['152']['inputs']['image'] == 'None' and graph['151']['inputs']['image'] == 'None'
+    image = io.BytesIO()
+    Image.new('RGB', (4, 4), 'red').save(image, format='PNG')
+    upload_id = client.post('/api/uploads', files={'file': ('ref.png', image.getvalue(), 'image/png')}).json()['id']
+    assert client.post('/api/tasks', json={**payload, 'upload_id': upload_id}).status_code == 422
+    assert client.post('/api/tasks', json={**payload, 'second_upload_id': upload_id}).status_code == 422
+    assert client.post('/api/tasks', json={**payload, 'prompt': ''}).status_code == 422
+    assert client.post('/api/tasks', json={**payload, 'model': 'Wan Animate2 动作迁移'}).status_code == 422

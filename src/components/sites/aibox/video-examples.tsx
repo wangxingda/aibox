@@ -28,3 +28,16 @@ export function VideoExamples({ mode, onApply }: { mode: Mode; onApply: (example
     <div className="video-example-list" aria-label={`选择${modeName}参考示例`}>{items.map((item, index) => <button type="button" key={item.video} disabled={applying} className={index === selected ? "selected" : ""} onClick={() => setSelected(index)} aria-label={`查看${item.title}`} aria-pressed={index === selected}><img src={item.poster} alt=""/><span className="video-example-play"><Play size={14} fill="currentColor"/></span><span className="video-example-title">{item.title}</span></button>)}</div>
   </section>;
 }
+
+const textVideoPrompts = [
+  { title: "海边日落", prompt: "夕阳洒在海面上，镜头缓缓掠过金色海岸，海浪轻轻拍打沙滩，远处的海鸥掠过天空，电影感自然光。" },
+  { title: "雨夜街道", prompt: "雨后的城市街道倒映着霓虹灯，一位行人撑伞缓步走过，镜头平稳跟随，细雨和车辆灯光营造电影氛围。" },
+  { title: "山间清晨", prompt: "清晨的山谷被薄雾环绕，阳光穿过松树林，镜头从溪流上方缓缓升起，展现远处的群山和流动的云海。" },
+];
+
+export function TextVideoExamples({ onApply }: { onApply: (prompt: string) => void }) {
+  return <section className="video-examples text-video-examples">
+    <div className="video-examples-heading"><div><h2>文字灵感</h2><p>选择一段提示词，开始文生视频</p></div><Sparkles size={20} aria-hidden="true" /></div>
+    <div className="text-video-prompt-list">{textVideoPrompts.map(item => <article key={item.title}><h3>{item.title}</h3><p>{item.prompt}</p><button type="button" onClick={() => onApply(item.prompt)}><Sparkles size={15}/>使用提示词</button></article>)}</div>
+  </section>;
+}
