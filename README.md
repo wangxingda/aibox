@@ -86,4 +86,4 @@ DATABASE_URL=sqlite:////tmp/aibox-test.sqlite3 REDIS_URL=redis://127.0.0.1:6399/
 
 后端测试会删除测试数据库中的表；必须使用专用测试数据库，不能指向现有业务数据库。测试环境中的 Redis 端口配置为不可用，以验证缓存回退；涉及 MySQL 特性的测试会在 SQLite 下跳过。
 
-目前动作迁移工作流指定的 `wan_animate_2_distill_int8_convrot.safetensors` 尚未在远程 ComfyUI 找到；需要在 ComfyUI 安装该模型后才能实际生成。其余模型能力、素材限制和任务状态说明见 [后端指南](backend/README.md) 与 [数据结构和交互约定](backend/docs/data-model.md)。
+模型能力、素材限制和任务状态说明见 [后端指南](backend/README.md) 与 [数据结构和交互约定](backend/docs/data-model.md)。
