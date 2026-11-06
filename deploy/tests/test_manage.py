@@ -14,7 +14,15 @@ class ManageTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         root = Path(self.tmp.name)
         (root / 'env').touch()
-        (root / 'git').write_text('#!/bin/sh\nexit 0\n')
+        (root / 'git').write_text('''#!/bin/sh
+printf '%s\\n' "$*" >> "$TEST_LOG.git"
+case "$*" in
+  *'symbolic-ref --quiet --short HEAD') echo main ;;
+  *'config --get branch.main.remote') echo origin ;;
+  *'remote get-url origin') echo "${TEST_REMOTE_URL:-https://github.com/wangxingda/aibox.git}" ;;
+esac
+exit 0
+''')
         (root / 'docker').write_text('''#!/usr/bin/env python3
 import io, os, sys, tarfile
 args = sys.argv[1:]
@@ -61,6 +69,21 @@ if 'app.migrate' in args and os.environ.get('FAIL_MIGRATION'):
         self.assertTrue(stop < dump < archive < migrate < start)
         self.assertEqual(len(list((self.root / 'backups').glob('*/mysql.sql.gz'))), 1)
         self.assertEqual(len(list((self.root / 'backups').glob('*/uploads.tar.gz'))), 1)
+
+    def test_update_converts_github_https_to_ssh_before_pull(self):
+        result, _ = self.run_script('update')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = (self.root / 'calls.git').read_text().splitlines()
+        convert = next(i for i, line in enumerate(calls) if line.endswith('remote set-url origin git@github.com:wangxingda/aibox.git'))
+        pull = next(i for i, line in enumerate(calls) if line.endswith('pull --ff-only'))
+        self.assertLess(convert, pull)
+
+    def test_update_rejects_other_non_ssh_remotes(self):
+        self.env['TEST_REMOTE_URL'] = 'https://example.com/repo.git'
+        result, calls = self.run_script('update')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('必须使用 SSH', result.stderr)
+        self.assertFalse(any(' build' in line for line in calls))
 
     def test_migration_failure_does_not_start_or_delete_images(self):
         self.env['FAIL_MIGRATION'] = '1'
