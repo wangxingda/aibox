@@ -1,0 +1,12 @@
+FROM docker.m.daocloud.io/library/python:3.11-slim
+WORKDIR /app
+RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; fi \
+    && apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt \
+    || pip install --no-cache-dir -i https://pypi.org/simple/ -r requirements.txt
+COPY backend/app ./app
+COPY backend/workflows ./workflows
+RUN mkdir -p storage/uploads
+ENV PYTHONUNBUFFERED=1
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
