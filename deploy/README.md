@@ -17,12 +17,15 @@ deploy/manage.sh build    # 首次部署或代码更新后构建镜像
 deploy/manage.sh start    # 使用已有镜像启动
 deploy/manage.sh stop     # 停止容器，保留数据卷
 deploy/manage.sh restart  # 使用已有镜像停止并重新启动
+deploy/manage.sh update   # 拉取当前分支、构建镜像并更新服务
 deploy/manage.sh status   # 查看容器状态
 deploy/manage.sh logs api # 查看 API 日志，Ctrl+C 退出
 # 环境文件不在默认位置时：
 AIBOX_ENV_FILE=/path/to/aibox.env deploy/manage.sh status
 curl -fsS http://127.0.0.1/api/health
 ```
+
+`update` 要求工作区干净且当前分支已配置上游，只允许快进拉取；拉取或构建失败时不会更新运行中的容器。更新会重建变化的服务并可能中断正在执行的生成任务，操作前请先检查任务；涉及数据库结构变化时先按下方流程备份和迁移。`update` 不会自动执行数据库迁移。
 
 脚本优先使用当前用户的 Docker 权限，无法直接访问时使用 `sudo docker`；`restart` 会中断正在执行的任务，请先检查任务状态。构建和更新镜像需要访问镜像源，日常启动与重启使用本机已有镜像。脚本不会执行 `down -v` 或删除数据卷。Compose 配置可通过 `docker compose --env-file /path/to/aibox.env -f deploy/compose.yml config --quiet` 检查，不要输出包含密钥的完整配置。
 
