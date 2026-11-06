@@ -13,9 +13,10 @@
 从项目根目录运行。`deploy/manage.sh` 默认读取项目目录同级的 `shared/.env`；如果环境文件在其他位置，可设置 `AIBOX_ENV_FILE`：
 
 ```bash
-deploy/manage.sh start    # 构建并启动
+deploy/manage.sh build    # 首次部署或代码更新后构建镜像
+deploy/manage.sh start    # 使用已有镜像启动
 deploy/manage.sh stop     # 停止容器，保留数据卷
-deploy/manage.sh restart  # 构建新镜像后停止并重新启动
+deploy/manage.sh restart  # 使用已有镜像停止并重新启动
 deploy/manage.sh status   # 查看容器状态
 deploy/manage.sh logs api # 查看 API 日志，Ctrl+C 退出
 # 环境文件不在默认位置时：
@@ -23,7 +24,7 @@ AIBOX_ENV_FILE=/path/to/aibox.env deploy/manage.sh status
 curl -fsS http://127.0.0.1/api/health
 ```
 
-脚本优先使用当前用户的 Docker 权限，无法直接访问时使用 `sudo docker`；`restart` 会中断正在执行的任务，请先检查任务状态。脚本不会执行 `down -v` 或删除数据卷。Compose 配置可通过 `docker compose --env-file /path/to/aibox.env -f deploy/compose.yml config --quiet` 检查，不要输出包含密钥的完整配置。
+脚本优先使用当前用户的 Docker 权限，无法直接访问时使用 `sudo docker`；`restart` 会中断正在执行的任务，请先检查任务状态。构建和更新镜像需要访问镜像源，日常启动与重启使用本机已有镜像。脚本不会执行 `down -v` 或删除数据卷。Compose 配置可通过 `docker compose --env-file /path/to/aibox.env -f deploy/compose.yml config --quiet` 检查，不要输出包含密钥的完整配置。
 
 首次启动会初始化全新数据库。若需要迁移现有数据库或上传素材，先备份并验证备份，再按 [数据结构与交互约定](../backend/docs/data-model.md) 操作；不要在运行中的数据库上直接覆盖数据文件。升级数据库结构前应停止 API 与 worker，备份数据库和上传卷，然后用新版本执行 `python -m app.migrate`，确认成功后再启动服务。
 

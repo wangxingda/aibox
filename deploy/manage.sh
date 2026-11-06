@@ -5,14 +5,14 @@ root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 env_file="${AIBOX_ENV_FILE:-${root_dir}/../shared/.env}"
 
 usage() {
-  printf '%s\n' '用法: deploy/manage.sh {start|stop|restart|status|logs [服务名]}' \
+  printf '%s\n' '用法: deploy/manage.sh {build|start|stop|restart|status|logs [服务名]}' \
     '默认读取项目目录同级 shared/.env，可通过 AIBOX_ENV_FILE 指定其他环境文件。' \
-    'stop 和 restart 保留数据库及上传文件。restart 会先构建新镜像，再重启服务。'
+    'stop 和 restart 保留数据库及上传文件。build 单独构建镜像。'
 }
 
 command_name="${1:-}"
 case "$command_name" in
-  start|stop|restart|status|logs) ;;
+  build|start|stop|restart|status|logs) ;;
   -h|--help|help) usage; exit 0 ;;
   *) usage >&2; exit 2 ;;
 esac
@@ -34,10 +34,10 @@ else
 fi
 compose=("${docker_cmd[@]}" compose --env-file "$env_file" -f "$root_dir/deploy/compose.yml")
 case "$command_name" in
-  start) "${compose[@]}" up -d --build ;;
+  build) "${compose[@]}" build ;;
+  start) "${compose[@]}" up -d --no-build ;;
   stop) "${compose[@]}" stop ;;
   restart)
-    "${compose[@]}" build
     "${compose[@]}" stop
     "${compose[@]}" up -d --no-build
     ;;
