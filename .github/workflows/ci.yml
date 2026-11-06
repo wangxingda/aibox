@@ -17,6 +17,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: bash -n deploy/manage.sh
 
   backend:
     runs-on: ubuntu-24.04
