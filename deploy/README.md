@@ -16,7 +16,7 @@
 deploy/manage.sh build    # 首次部署或代码更新后构建镜像
 deploy/manage.sh start    # 使用已有镜像启动
 deploy/manage.sh stop     # 停止容器，保留数据卷
-deploy/manage.sh restart  # 使用已有镜像停止并重新启动
+deploy/manage.sh restart  # 仅重启 API、worker 和前端
 deploy/manage.sh update   # 拉取当前分支、构建镜像并更新服务
 deploy/manage.sh status   # 查看容器状态
 deploy/manage.sh logs api # 查看 API 日志，Ctrl+C 退出
@@ -25,10 +25,12 @@ AIBOX_ENV_FILE=/path/to/aibox.env deploy/manage.sh status
 curl -fsS http://127.0.0.1/api/health
 ```
 
-`update` 要求工作区干净且当前分支已配置上游，只允许快进拉取；拉取或构建失败时不会更新运行中的容器。更新会重建变化的服务并可能中断正在执行的生成任务，操作前请先检查任务；涉及数据库结构变化时先按下方流程备份和迁移。`update` 不会自动执行数据库迁移。服务成功更新后，脚本仅清理本次更新前的 AIBox 应用镜像中已无标签、且没有任何容器使用的旧镜像；保留其他项目的镜像、数据卷和构建缓存。清理失败会显示提示，但不会回滚已启动的服务。
+`update` 要求工作区干净且当前分支已配置上游，只允许快进拉取。脚本先拉取代码并构建镜像，再停止 API 与 worker，将 MySQL 和上传目录备份到项目目录同级的 `backups/`（可通过 `AIBOX_BACKUP_DIR` 修改），检查备份压缩包，然后使用新镜像执行 `python -m app.migrate`，成功后才启动新服务并等待健康检查。备份包含敏感数据，目录仅对运行用户可读；请按实际容量管理和保留备份，并定期演练恢复。备份或迁移失败时 API 与 worker 保持停止，备份文件保留供排查；MySQL DDL 无法整体回滚，修复后可按迁移文档恢复备份或重新运行迁移。更新会中断正在执行的任务，操作前请先检查任务状态。
 
-脚本优先使用当前用户的 Docker 权限，无法直接访问时使用 `sudo docker`；`restart` 会中断正在执行的任务，请先检查任务状态。构建和更新镜像需要访问镜像源，日常启动与重启使用本机已有镜像。脚本不会执行 `down -v` 或删除数据卷。Compose 配置可通过 `docker compose --env-file /path/to/aibox.env -f deploy/compose.yml config --quiet` 检查，不要输出包含密钥的完整配置。
+迁移只执行代码中明确编写的变更，不会自动推断任意字段改动。以后每次数据库结构或数据变更，都必须同时编写可重复执行的版本化迁移并测试旧数据升级。服务成功更新后，脚本仅清理本次更新前的 AIBox 应用镜像中已无标签、且没有任何容器使用的旧镜像；保留其他项目的镜像、数据卷和构建缓存。清理失败会显示提示，但不会回滚已启动的服务。
 
-首次启动会初始化全新数据库。若需要迁移现有数据库或上传素材，先备份并验证备份，再按 [数据结构与交互约定](../backend/docs/data-model.md) 操作；不要在运行中的数据库上直接覆盖数据文件。升级数据库结构前应停止 API 与 worker，备份数据库和上传卷，然后用新版本执行 `python -m app.migrate`，确认成功后再启动服务。
+脚本优先使用当前用户的 Docker 权限，无法直接访问时使用 `sudo docker`；`restart` 只重启 API、worker 和前端，不重启 Nginx、MySQL 和 Redis；它会中断正在执行的任务，请先检查任务状态。构建和更新镜像需要访问镜像源，日常启动与重启使用本机已有镜像。脚本不会执行 `down -v` 或删除数据卷。Compose 配置可通过 `docker compose --env-file /path/to/aibox.env -f deploy/compose.yml config --quiet` 检查，不要输出包含密钥的完整配置。
+
+首次启动会初始化全新数据库。若需要迁移现有数据库或上传素材，先备份并验证备份，再按 [数据结构与交互约定](../backend/docs/data-model.md) 操作；不要在运行中的数据库上直接覆盖数据文件。使用 `update` 会自动完成停服务、备份和迁移；手动升级时仍需按相同顺序操作。
 
 生成任务依赖远端 ComfyUI 的 HTTP 和 WebSocket 接口，服务器必须能访问配置地址。站点的账号密码需要 HTTPS 保护：本配置仅提供 HTTP 入口，如需公网正式使用，应配置域名和 TLS，并将 `CORS_ORIGINS` 和 `COOKIE_SECURE` 调整为实际 HTTPS 配置。
