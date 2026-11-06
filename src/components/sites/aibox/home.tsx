@@ -1,0 +1,38 @@
+/* eslint-disable @next/next/no-html-link-for-pages, @next/next/no-img-element */
+"use client";
+
+import { useState } from "react";
+
+const origin = "";
+const modelSlugs = ["grok-imagine", "hailuo-ai", "kling-4-0", "pixverse-ai", "seedance-2-0", "sora-2", "veo-3-1", "wan-3-0", "vidu-q3", "runway-ai", "happyhorse-ai"];
+const footerLinks: Record<string, string> = {"参考图生视频":"image-to-video", "角色替换":"character-replacement", "动作迁移":"motion-transfer", "图片编辑":"image-edit", "图生图":"image-to-image", "文生图":"text-to-image", "我的作品":"my", "关于我们":"about", "价格":"pricing", "隐私政策":"privacy-policy", "使用条款":"terms-conditions", "退款政策":"refund-policy"};
+const models = ["Grok", "Hailuo", "Kling", "Pixverse", "Seedance", "Sora", "Veo", "Wan", "Vidu", "Runway", "HappyHorse"];
+const ids = ["a1df404f5ed5", "40aed63c08a1", "16c20dac2be1", "ed780e17669d", "4bf2b8e050a8", "28f715287fe8", "ab6f36c40470", "1ea41ea468aa", "a49f110c9b9b", "8d0725f1dc8b", "edf0f92dc05e", "4de4c7d4c7ce", "5092d7cbbe66", "431c3d9efc85", "21afac7bba71", "2e24a7ba448a", "89ae9b1d2def", "50b2d010c35e", "0516cd6537d9", "49fbce36e39d"];
+const titles = ["形影不离", "老城路", "上路吧，老兄", "24K魔力", "资金灵活周转", "德雷克《烧毁桥梁》", "Migos的酒店大堂", "罗克斯伯里小伙子", "Bulin 47 自由式", "BbY WOW", "小镇男孩", "惊悚片", "训练季", "比莉·珍", "厄齐尔进球 AI 趋势", "惊悚风格切换", "暮光之城", "舞台破坏者", "百鬼演奏家", "宠物归来"];
+const features = [
+  ["让图片轻松变成视频", "上传任意图片，几秒内即可生成逼真的动态视频。为画面加入自然动效、空间层次和电影感效果，让视觉内容更生动。无需剪辑，AI自动完成。", "image2video.jpg", "图片转视频", "image-to-video"],
+  ["文本转视频，轻松实现", "只需几句话，AI就能帮你生成完整视频。用简单提示词创建场景与动态，其余流程全部自动完成。无论是做内容、广告还是视觉故事，都可以直接从文字开始。", "text2video.jpg", "文本转视频", "text-to-video"],
+  ["精准掌控视频的开头与结尾", "精准控制视频的起始与结束画面。只需设置首帧和尾帧，AI就会自动补全中间过程，生成流畅自然的过渡效果。", "frame2video.jpg", "关键帧转视频", "frame-to-video"],
+  ["从一张图片延展更多可能", "从一张你喜欢的图片开始，无需从零重做。你可以在保持整体一致性的同时，调整风格、优化细节，或尝试新的视觉方向。", "image2image.jpg", "图片编辑与生成", "image-to-image"],
+  ["从想法到图片，更快一步", "无需四处寻找参考素材，也不用一点点拼凑画面，只需简单描述，AI就能生成完整视觉。让想法更快落地，并不断调整优化。", "text2image-v2.jpg", "文本生成图片", "text-to-image"],
+  ["少出废片，少改重来", "不是每次生成都该从同一个起点开始。图片和文字进入创作前，会先被整理成更适合当前任务的起步方式，让画面少一点跑偏、少一点反复试错。", "model-routing-zh.webp", "", ""]
+];
+const uses = [["内容创作", "热点来得快，内容也要跟得上。把一个灵感迅速扩展成可发布的图片和视频，不用反复找素材、拼画面、想转场。"], ["社媒运营", "做账号最难的，往往不是没想法，而是每天都要准时交内容。更快准备活动海报、短视频和日常发文素材。"], ["推广营销", "无论是新品上线、联名合作、节日活动，还是阶段性主题传播，都能更快把创意变成内容。"], ["广告投放", "更快把想法变成可测试的图片和视频，缩短等待时间，发现更有吸引力的画面方向。"], ["个人表达", "把脑海里的画面、情绪和念头真正表达出来。即使不会剪辑、不会设计，也能把想法变成图片和视频。"], ["线上电商", "快速生成商品展示图、卖点短视频、活动宣传素材和社媒种草内容。"]];
+const reviews = [["我最常用的是把灵感先快速做成可看的内容，不用等拍摄、不用先剪，特别适合赶热点。", "Aria", "短视频创作者"], ["上新和做活动时很省事，不用每次都重新准备一整套素材，能快速做出不同版本来测试。", "Stella", "独立站卖家"], ["我不会把它当成替代，而是一个非常高效的前期工具。很多风格方向和视觉尝试可以先快速跑一遍。", "Iris", "设计师"], ["以前最怕灵感来了却做不出来，现在至少能先快速生成一个方向，再慢慢优化。", "Eva", "自媒体运营者"]];
+const faqs = [["什么是AIBox？", "AIBox是一款一站式AI图片与视频生成工具，可将文字或图片快速转换为高质量内容，让你专注创意本身，无需处理复杂剪辑。"], ["开始使用需要准备什么？", "只需要一个想法。输入文字或上传图片，其余交给AIBox自动完成。"], ["AIBox是如何生成AI视频的？", "AIBox集成多种多模态AI模型，可将文字或图片转化为具有真实动态的视频。"], ["如果我不会写提示词怎么办？", "不用担心。AIBox内置提示词助手，你只需用简单语言描述想法，系统会自动优化提示内容。"], ["可以自动延长视频长度吗？", "可以。AIBox的生成引擎会根据现有内容自动补充画面、动作或情节，让视频自然延长。"], ["AIBox提供现成模板吗？", "提供。AIBox拥有丰富模板库，内置多种AI玩法，选择后即可快速生成图片或视频。"], ["AIBox支持多语言吗？", "支持。AIBox可理解超过50种语言，输入提示词和生成内容均可使用你熟悉的语言。"], ["使用AIBox可以节省多少成本和时间？", "相比传统制作流程，AIBox可大幅减少时间与成本。一般用户平均可节省约90%的制作时间与费用。"]];
+
+export function Home() {
+  const [menu, setMenu] = useState("");
+  return <main>
+    <header><a className="logo" href="/"><span>▧</span> AI<span>Box</span></a><nav className="desktop-nav">{["AI功能", "AI模型", "AI工具"].map(item => <div className="nav-item" key={item}><button onClick={() => setMenu(menu === item ? "" : item)}>{item}⌄</button>{menu === item && <div className="dropdown">{(item === "AI模型" ? models.slice(0, 8) : ["图片转视频", "文本转视频", "图片编辑", "文本生成图片"]).map((x, i) => <a key={x} href={`${origin}/${item === "AI模型" ? "models/" + modelSlugs[models.indexOf(x)] : ["image-to-video", "text-to-video", "image-to-image", "text-to-image"][i]}`}>{x}</a>)}</div>}</div>)}<a href={`${origin}/pricing?ps=1`}>定价</a></nav><div className="nav-right"><a href="/login">🎁 登录</a><a className="outline" href={"/create"}>立即体验</a></div><button className="mobile-menu" onClick={() => setMenu(menu === "mobile" ? "" : "mobile")}>☰</button>{menu === "mobile" && <div className="mobile-dropdown">{["AI功能", "AI模型", "AI工具", "定价", "下载App", "登录", "立即体验"].map(x => <a href={x === "登录" ? "/login" : "/create"} key={x}>{x}</a>)}</div>}</header>
+    <section className="hero"><video className="hero-video" autoPlay muted loop playsInline poster="/sites/aibox/home-main-thumbnail2.jpg"><source src="/sites/aibox/home-main.mp4" type="video/mp4"/></video><div className="hero-shade"/><div className="hero-content"><h1>人人都能轻松创作AI视频与图片</h1><p>上传图片或输入几句话，其余交给AIBox。零门槛，快速生成，免费体验。</p><a className="primary" href={"/create"}>免费开始创作</a><div className="model-row">{models.map((m, i) => <a href={`${origin}/models/${["grok-imagine", "hailuo-ai", "kling-4-0", "pixverse-ai", "seedance-2-0", "sora-2", "veo-3-1", "wan-3-0", "vidu-q3", "runway-ai", "happyhorse-ai"][i]}`} key={m}><b>✺</b> {m}</a>)}</div></div><a className="scroll" href="#templates" aria-label="Scroll to templates">♧</a></section>
+    <section className="templates" id="templates"><div className="template-track">{[...ids, ...ids].map((id, i) => <a href={"/create"} className="template" key={`${id}-${i}`}><img src={`/sites/aibox/${id}.webp`} alt={titles[i % 20]}/><span>{titles[i % 20]}</span></a>)}</div></section>
+    <section className="features">{features.map((f, i) => <article className={`feature ${i % 2 ? "reverse" : ""}`} key={f[0]}><img src={`/sites/aibox/${f[2]}`} alt={f[0]}/><div><h2>{f[0]}</h2><p>{f[1]}</p>{f[3] && <a href={`${origin}/${f[4]}?ps=0`}>立即体验{f[3]} →</a>}</div></article>)}</section>
+    <section className="uses section"><h2>越来越多人选择AIBox</h2><p className="intro">不同行业、不同角色的人，都能用AIBox更轻松地完成内容创作与发布。借助更简单的创作方式和更高效的生成流程，AIBox让灵感更快落地。</p><div className="uses-grid">{uses.map(([title, text]) => <article key={title}><h3>{title}</h3><p>{text}</p></article>)}</div></section>
+    <section className="stats section"><h2>真实数据，持续积累</h2><div className="stats-grid">{[["100K+", "全球用户"], ["1000+", "热门模板"], ["20+", "AI生成模型"], ["4.7★", "Google Play"]].map(([n, t]) => <div key={n}><strong>{n}</strong><p>{t}</p></div>)}</div><div className="badges"><span>✦ Featured on TAAFT</span><span>▲ PRODUCT HUNT</span><span>✓ SaaSHub Approved</span></div></section>
+    <section className="testimonials section"><h2>来自真实使用者的声音</h2><p className="intro">真正会被反复使用的，不只是“能做出来”，而是在每次有新想法时都能快速接上，并稳定得到满意的结果。</p><div className="review-track">{reviews.map(([text, name, role]) => <article key={name}><div className="quote">❝</div><div className="stars">★★★★★</div><p>{text}</p><div className="reviewer"><span>{name[0]}</span><div><b>{name}</b><small>{role}</small></div></div></article>)}</div></section>
+    <section className="faq section"><h2>常见问题</h2><div>{faqs.map(([q, a]) => <details key={q} open><summary>{q}</summary><p>{a}</p></details>)}</div></section>
+    <section className="bottom-cta"><h2>创作精彩AI视频<br/><span>一站式轻松搞定</span></h2><p>AIBox让视频创作更快、更简单、更省心。</p><div><a href={`${origin}/image-to-video?ps=0`}>图片转视频</a><a href={`${origin}/text-to-video?ps=0`}>文本转视频</a></div></section>
+    <footer><div className="footer-brand"><a className="logo" href="/"><span>▧</span> AI<span>Box</span></a><p>◉　✉　𝕏　▶　◎</p><p>© 2026 AIBox. All rights reserved.</p></div>{[["生成视频", "参考图生视频", "角色替换", "动作迁移", "图片编辑", "文生图", "我的作品"], ["视频模型", ...models], ["关于", "关于我们", "价格", "隐私政策", "使用条款", "退款政策"]].map(group => <div className="footer-col" key={group[0]}><h4>{group[0]}</h4>{group.slice(1).map(x => <a key={x} href={footerLinks[x] ? `/${footerLinks[x]}` : `/models/${modelSlugs[models.indexOf(x)]}`}>{x}</a>)}</div>)}</footer>
+  </main>;
+}
