@@ -1,7 +1,7 @@
 name: aibox
 services:
   mysql:
-    image: mysql:8.4
+    image: docker.m.daocloud.io/library/mysql:8.4
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: aibox
