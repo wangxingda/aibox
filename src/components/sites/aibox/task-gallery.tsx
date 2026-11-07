@@ -25,9 +25,9 @@ function localTaskTime(value: string) {
   return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} ${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
 }
 
-type Props = { user: BackendUser | null; authLoading: boolean; authError: string; kind?: "image" | "video" };
+type Props = { user: BackendUser | null; authLoading: boolean; authError: string; kind?: "image" | "video"; onAuthRequired?: () => void };
 
-export function TaskGallery({ user, authLoading, authError, kind }: Props) {
+export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired }: Props) {
   const [tasks, setTasks] = useState<BackendTask[]>([]);
   const [pageCount, setPageCount] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -101,7 +101,7 @@ export function TaskGallery({ user, authLoading, authError, kind }: Props) {
   } else if (authError) {
     content = <div className="task-gallery-empty" role="alert">{authError}</div>;
   } else if (!user) {
-    content = <div className="task-gallery-empty"><p>登录后即可查看我的作品</p><Link className="ws-gradient backend-start" href="/login">登录</Link></div>;
+    content = <div className="task-gallery-empty"><p>登录后即可查看我的作品</p>{onAuthRequired ? <button className="ws-gradient backend-start" onClick={onAuthRequired}>登录 / 注册</button> : <Link className="ws-gradient backend-start" href="/login">登录</Link>}</div>;
   } else if (loading && tasks.length === 0) {
     content = <div className="task-gallery-empty" role="status">正在加载作品…</div>;
   } else if (error && tasks.length === 0) {

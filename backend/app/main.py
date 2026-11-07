@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from PIL import Image, UnidentifiedImageError
 from pwdlib import PasswordHash
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import case, delete, select
+from sqlalchemy import case, delete, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
@@ -185,8 +185,8 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(curren
     return {'id': upload_id, 'deduplicated': False}
 
 @app.get('/api/uploads')
-def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0):
-    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, Upload.content_type.like('image/%')).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
+def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video'] = 'image'):
+    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, Upload.content_type.like(f'{kind}/%')).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
     return [{'id': row.id, 'content_type': row.content_type, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
 
 @app.post('/api/uploads/video', status_code=201)
@@ -252,6 +252,24 @@ def upload_content(upload_id: str, user: User = Depends(current_user), session: 
     if not path.is_file():
         raise HTTPException(404, '素材文件不存在')
     return FileResponse(path, media_type=upload.content_type, headers={'Cache-Control': 'private, max-age=60', 'X-Content-Type-Options': 'nosniff'})
+
+@app.delete('/api/uploads/{upload_id}')
+def delete_upload(upload_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    upload = session.get(Upload, upload_id)
+    if not upload or upload.user_id != user.id:
+        raise HTTPException(404, '素材不存在')
+    in_use = session.scalar(select(Task.id).where(or_(Task.upload_id == upload_id, Task.options['second_upload_id'].as_string() == upload_id, Task.options['video_upload_id'].as_string() == upload_id)).limit(1)) or session.scalar(select(TaskInputAsset.task_id).where(TaskInputAsset.upload_id == upload_id).limit(1))
+    if in_use:
+        raise HTTPException(409, '素材正在被作品使用，请先删除相关作品')
+    path = cfg.path(cfg.upload_dir) / Path(upload.path).name
+    session.delete(upload)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, '素材正在被作品使用，请先删除相关作品')
+    path.unlink(missing_ok=True)
+    return {'deleted': True}
 
 @app.post('/api/tasks', status_code=202)
 def create_task(data: TaskInput, user: User = Depends(current_user), session: DBSession = Depends(db), idempotency_key: str | None = Header(default=None, alias='Idempotency-Key')):

@@ -427,6 +427,31 @@ def test_delete_completed_task_requires_ownership_and_preserves_upload(client):
     with Session() as session:
         assert session.get(Upload, upload_id) is not None
 
+def test_asset_filter_delete_and_task_references(client, tmp_path, monkeypatch):
+    from app.db import Session, Upload
+    from app.main import cfg
+    monkeypatch.setattr(cfg, 'upload_dir', str(tmp_path))
+    register(client)
+    image = io.BytesIO()
+    Image.new('RGB', (4, 4), 'red').save(image, format='PNG')
+    upload_id = client.post('/api/uploads', files={'file': ('ref.png', image.getvalue(), 'image/png')}).json()['id']
+    with Session() as session:
+        owner = session.get(Upload, upload_id).user_id
+        session.add(Upload(id='video-asset', user_id=owner, path='video.mp4', content_type='video/mp4'))
+        session.commit()
+    (tmp_path / 'video.mp4').write_bytes(b'video')
+    assert [x['id'] for x in client.get('/api/uploads?kind=image').json()] == [upload_id]
+    assert [x['id'] for x in client.get('/api/uploads?kind=video').json()] == ['video-asset']
+    task = client.post('/api/tasks', json={'kind':'image', 'model':'demo-image', 'prompt':'test', 'upload_id':upload_id}).json()
+    assert client.delete('/api/uploads/' + upload_id).status_code == 409
+    assert client.delete('/api/uploads/video-asset').status_code == 200
+    assert not (tmp_path / 'video.mp4').exists()
+    client.post('/api/auth/logout')
+    register(client, 'other@example.com')
+    assert client.delete('/api/uploads/' + upload_id).status_code == 404
+    assert client.get('/api/uploads/' + upload_id + '/content').status_code == 404
+    assert client.get('/api/tasks/' + task['id']).status_code == 404
+
 def test_upload_deduplicates_per_user_and_restores_missing_file(client):
     from app.db import Session, Upload
     register(client)

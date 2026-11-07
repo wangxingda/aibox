@@ -12,6 +12,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   catch { throw new Error("无法连接后端服务，请稍后重试。"); }
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { detail?: string } | null;
+    if (response.status === 401 && !path.startsWith("/auth/")) window.dispatchEvent(new Event("aibox:auth-required"));
     throw new ApiError(typeof body?.detail === "string" ? body.detail : `请求失败 (${response.status})`, response.status);
   }
   return response.json() as Promise<T>;
