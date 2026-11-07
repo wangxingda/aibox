@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from .config import settings
 from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, engine
-from .workflows import WorkflowError, build_workflow, registry
+from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
 
 cfg = settings()
 password_hash = PasswordHash.recommended()
@@ -292,6 +292,17 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
     options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
     try:
         workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None)
+        if data.video_upload_id and data.model in ('Wan SCAIL2 角色替换', 'Wan Animate2 动作迁移'):
+            driving = session.get(Upload, data.video_upload_id)
+            path = cfg.path(cfg.upload_dir) / Path(driving.path).name
+            try:
+                probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-of', 'json', str(path)], capture_output=True, timeout=120, check=True)
+                frame_count = int(json.loads(probe.stdout)['streams'][0]['nb_read_frames'])
+            except FileNotFoundError:
+                raise HTTPException(503, '服务端未安装视频检查工具')
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, IndexError, OSError):
+                raise HTTPException(422, '无法读取驱动视频的帧数')
+            workflow = extend_driving_video(workflow, data.model, frame_count)
     except WorkflowError as exc:
         raise HTTPException(422, str(exc))
     task = Task(id=str(uuid.uuid4()), user_id=user.id, kind=data.kind, model=data.model, prompt=prompt, upload_id=data.upload_id, options=options, status='queued', progress=0, outputs=[])

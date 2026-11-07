@@ -18,6 +18,13 @@ const statusLabels: Record<string, string> = {
 };
 const activeStatuses = new Set(["queued", "submitting", "running"]);
 
+function localTaskTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const twoDigits = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())} ${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+}
+
 type Props = { user: BackendUser | null; authLoading: boolean; authError: string; kind?: "image" | "video" };
 
 export function TaskGallery({ user, authLoading, authError, kind }: Props) {
@@ -107,7 +114,7 @@ export function TaskGallery({ user, authLoading, authError, kind }: Props) {
         {tasks.map(task => {
           const isActive = activeStatuses.has(task.status);
           const progress = Math.max(0, Math.min(100, task.progress ?? (task.status === "completed" ? 100 : 0)));
-          const createdAt = task.created_at ? task.created_at.replace("T", " ").replace(/Z$/, "").slice(0, 16) : "";
+          const createdAt = task.created_at ? localTaskTime(task.created_at) : "";
           return <article className={`task-card task-card-${task.kind} task-card-${task.status}`} key={task.id}>
             <header className="task-card-header">
               <div className="task-card-heading"><b title={task.model}>{task.model}</b><time dateTime={task.created_at}>{createdAt}</time></div>

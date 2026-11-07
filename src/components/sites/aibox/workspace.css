@@ -8,6 +8,12 @@
 .editor-tabs a:has(svg), .create-tabs button:has(svg) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .editor-tabs a svg, .create-tabs button svg { flex: none; color: #80dfeb; }
 
-.workspace .upload-thumbnail { display: block; width: 48px; height: 48px; flex: none; border: 1px solid #53666a; border-radius: 7px; object-fit: cover; background: #171c1e; }
-.workspace .create-upload .upload-thumbnail { width: 38px; height: 38px; }
-.editor-generate { margin-bottom: 20px; flex-shrink: 0; }
+.workspace .upload-thumbnail { display: block; width: auto; height: auto; max-width: 160px; max-height: 120px; flex: none; border: 1px solid #53666a; border-radius: 7px; object-fit: contain; background: #171c1e; }
+.workspace .editor-upload { height: auto; min-height: 102px; padding: 12px; }
+.workspace .create-box { height: auto; min-height: 235px; }
+.workspace .create-input { height: auto; min-height: 150px; overflow-x: auto; }
+.workspace .create-input textarea { min-width: 100px; }
+.workspace .create-upload { width: 108px; height: 126px; gap: 4px; }
+.workspace .create-upload .upload-thumbnail { max-width: 100px; max-height: 96px; }
+.workspace .create-upload small { max-width: 100px; }
+.editor-generate { margin-top: 0; margin-bottom: 20px; flex-shrink: 0; }
