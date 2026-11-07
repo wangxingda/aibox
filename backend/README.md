@@ -47,7 +47,7 @@ FastAPI 提供账户、图片和视频上传、模型目录与生成任务接口
 
 接口的完整参数以运行中的 `/docs` 为准。注册、登录、登出和当前账户接口位于 `/api/auth/`；`GET /api/models` 返回当前可见模型及输入要求。`POST /api/uploads` 上传图片，`POST /api/uploads/video` 上传驱动视频，`GET /api/uploads` 返回当前用户的图片素材；素材内容通过 `/api/uploads/{id}/content` 读取。重复素材按用户和文件内容去重。
 
-`GET /api/uploads?kind=image` 和 `?kind=video` 分别列出当前用户的图片和视频，省略 `kind` 时保持返回图片的兼容行为。`DELETE /api/uploads/{id}` 删除当前用户未被作品引用的素材及其本地文件；被作品引用时返回 409，须先删除相关作品。生成页面可以从元素库选择参考素材，提交时仍进行归属及类型校验。
+`GET /api/uploads?kind=image` 和 `?kind=video` 分别列出当前用户的图片和视频，`?kind=all` 按创建时间列出两类素材，省略 `kind` 时保持返回图片的兼容行为。`DELETE /api/uploads/{id}` 删除当前用户未被作品引用的素材及其本地文件；被作品引用时返回 409，须先删除相关作品。生成页面可以从元素库选择参考素材，提交时仍进行归属及类型校验。
 
 `POST /api/tasks` 创建任务，可通过 `Idempotency-Key` 防止重复提交；`GET /api/tasks` 和 `GET /api/tasks/{id}` 获取列表及详情，`/events` 获取状态事件，`/outputs/{index}` 读取或下载结果。`DELETE /api/tasks/{id}` 仅允许所有者删除已完成任务的站内记录；上传素材和 ComfyUI 输出文件不会随之删除。所有素材、任务及结果接口均校验账号归属。
 

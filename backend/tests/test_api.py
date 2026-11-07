@@ -442,6 +442,10 @@ def test_asset_filter_delete_and_task_references(client, tmp_path, monkeypatch):
     (tmp_path / 'video.mp4').write_bytes(b'video')
     assert [x['id'] for x in client.get('/api/uploads?kind=image').json()] == [upload_id]
     assert [x['id'] for x in client.get('/api/uploads?kind=video').json()] == ['video-asset']
+    all_assets = client.get('/api/uploads?kind=all').json()
+    assert {x['id'] for x in all_assets} == {upload_id, 'video-asset'}
+    assert [x['id'] for x in client.get('/api/uploads?kind=all&limit=1&offset=0').json()] == [all_assets[0]['id']]
+    assert [x['id'] for x in client.get('/api/uploads?kind=all&limit=1&offset=1').json()] == [all_assets[1]['id']]
     task = client.post('/api/tasks', json={'kind':'image', 'model':'demo-image', 'prompt':'test', 'upload_id':upload_id}).json()
     assert client.delete('/api/uploads/' + upload_id).status_code == 409
     assert client.delete('/api/uploads/video-asset').status_code == 200

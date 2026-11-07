@@ -185,8 +185,9 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(curren
     return {'id': upload_id, 'deduplicated': False}
 
 @app.get('/api/uploads')
-def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video'] = 'image'):
-    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, Upload.content_type.like(f'{kind}/%')).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
+def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'all'] = 'image'):
+    media_filter = or_(Upload.content_type.like('image/%'), Upload.content_type.like('video/%')) if kind == 'all' else Upload.content_type.like(f'{kind}/%')
+    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, media_filter).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
     return [{'id': row.id, 'content_type': row.content_type, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
 
 @app.post('/api/uploads/video', status_code=201)
