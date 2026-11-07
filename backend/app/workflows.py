@@ -18,6 +18,66 @@ def registry() -> dict:
         raise WorkflowError('Workflow registry must be an object')
     return data
 
+def extend_driving_video(workflow: dict, model: str, frame_count: int) -> dict:
+    """Expand the captured workflow before submission, keeping the graph in the task snapshot."""
+    if not 1 <= frame_count <= 3805:
+        raise WorkflowError('驱动视频须包含 1 到 3805 帧')
+    count = 1 + max(0, (frame_count - 81 + 75) // 76)
+    replacement = model == 'Wan SCAIL2 角色替换'
+    source = '215' if replacement else '288'
+    # Padding guarantees a full final window; the output is cropped back to the input frame count.
+    workflow['full_last'] = {'class_type': 'ImageFromBatch', 'inputs': {'image': [source, 0], 'batch_index': -1, 'length': 1}}
+    workflow['full_padding'] = {'class_type': 'RepeatImageBatch', 'inputs': {'image': ['full_last', 0], 'amount': 81}}
+    workflow['full_source'] = {'class_type': 'ImageBatch', 'inputs': {'image1': [source, 0], 'image2': ['full_padding', 0]}}
+
+    def clone_prefix(old: str, new: str):
+        def remap(value):
+            if isinstance(value, list):
+                if len(value) == 2 and isinstance(value[0], str) and value[0].startswith(old) and isinstance(value[1], int):
+                    return [new + value[0][len(old):], value[1]]
+                return [remap(item) for item in value]
+            if isinstance(value, dict):
+                return {key: remap(item) for key, item in value.items()}
+            return value
+        for key, node in list(workflow.items()):
+            if key.startswith(old):
+                workflow[new + key[len(old):]] = remap(copy.deepcopy(node))
+
+    parts = []
+    if replacement:
+        workflow['213:177']['inputs']['image'] = ['full_source', 0]
+        parts.append(['213:6', 0])
+        previous = '213:6'
+        for index in range(1, count):
+            prefix = f'full_scail_{index}:'
+            clone_prefix('262:', prefix)
+            workflow[prefix + '235']['inputs']['image'] = ['full_source', 0]
+            workflow[prefix + '240']['inputs']['value'] = index + 1
+            workflow[prefix + '259']['inputs']['previous_frames'] = [previous, 0]
+            workflow[prefix + '253']['inputs']['image'] = [previous, 0]
+            parts.append([prefix + '252', 0])
+            previous = prefix + '250'
+        output = '270'
+    else:
+        workflow['261:243']['inputs']['input'] = ['full_source', 0]
+        parts.append(['261:6', 0])
+        previous = '261:'
+        for index in range(1, count):
+            prefix = f'full_animate_{index}:'
+            clone_prefix('261:', prefix)
+            node = workflow[prefix + '247']['inputs']
+            node['continue_motion'] = [previous + '6', 0]
+            node['video_frame_offset'] = [previous + '247', 5]
+            trimmed = f'full_animate_trim_{index}'
+            workflow[trimmed] = {'class_type': 'ImageFromBatch', 'inputs': {'image': [prefix + '6', 0], 'batch_index': [prefix + '247', 4], 'length': 4096}}
+            parts.append([trimmed, 0])
+            previous = prefix
+        output = '245'
+    workflow['full_join'] = {'class_type': 'BatchImagesNode', 'inputs': {f'images.image{i}': part for i, part in enumerate(parts)}}
+    workflow['full_crop'] = {'class_type': 'ImageFromBatch', 'inputs': {'image': ['full_join', 0], 'batch_index': 0, 'length': frame_count}}
+    workflow[output]['inputs']['images'] = ['full_crop', 0]
+    return workflow
+
 def build_workflow(model: str, kind: str, prompt: str, options: dict, image: str | None, image2: str | None = None, video: str | None = None) -> dict:
     config = registry().get(model)
     if not config or config.get('kind') != kind:

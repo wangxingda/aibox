@@ -1,11 +1,6 @@
 "use client";
 
-import { LockKeyhole } from "lucide-react";
 import "./generation-settings.css";
-
-const ratios = ["16:9", "9:16", "4:3", "3:4", "1:1", "21:9"];
-const durations = ["5s", "10s", "15s", "20s", "25s", "30s"];
-const resolutions = ["540P", "720P", "1080P"];
 
 type GenerationSettingsProps = {
   kind: "image" | "video";
@@ -22,102 +17,21 @@ type GenerationSettingsProps = {
   onDurationChange: (duration: string) => void;
 };
 
-function slug(value: string) {
-  return value.replace(":", "-").toLowerCase();
-}
-
-export function GenerationSettings({
-  kind,
-  quality,
-  ratio,
-  duration,
-  fixedResolution,
-  resolutionLabel,
-  supportedQualities,
-  supportedRatios,
-  supportedDurations,
-  onQualityChange,
-  onRatioChange,
-  onDurationChange,
-}: GenerationSettingsProps) {
-  const qualityOptions = fixedResolution ? ["固定", ...resolutions.slice(1)] : resolutions;
-
-  return (
-    <div className="generation-settings" aria-label="生成参数设置">
-      <section className="generation-settings-group">
-        <h3>分辨率</h3>
-        {fixedResolution && <p className="generation-settings-note">{resolutionLabel}</p>}
-        <div className="resolution-options">
-          {qualityOptions.map((option, index) => {
-            const available = fixedResolution ? index === 0 : supportedQualities.includes(option);
-            const selected = fixedResolution ? index === 0 : quality === option;
-            return (
-              <button
-                type="button"
-                className={`settings-option resolution-option${selected ? " selected" : ""}`}
-                key={option}
-                disabled={!available}
-                aria-pressed={selected}
-                onClick={() => {
-                  if (!fixedResolution) onQualityChange(option);
-                }}
-              >
-                {option}
-                {!available && <LockKeyhole className="settings-lock" size={12} aria-label="当前工作流不支持" />}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="generation-settings-group">
-        <h3>比例</h3>
-        <div className="ratio-options">
-          {ratios.map((option) => {
-            const available = supportedRatios.includes(option);
-            const selected = ratio === option;
-            return (
-              <button
-                type="button"
-                className={`settings-option ratio-option${selected ? " selected" : ""}`}
-                key={option}
-                disabled={!available}
-                aria-pressed={selected}
-                onClick={() => onRatioChange(option)}
-              >
-                <span className={`ratio-icon ratio-icon-${slug(option)}`} aria-hidden="true" />
-                <span>{option}</span>
-                {!available && <LockKeyhole className="settings-lock" size={12} aria-label="当前工作流不支持" />}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {kind === "video" && (
-        <section className="generation-settings-group">
-          <h3>时长</h3>
-          <div className="duration-options">
-            {durations.map((option) => {
-              const available = supportedDurations.includes(option);
-              const selected = duration === option;
-              return (
-                <button
-                  type="button"
-                  className={`settings-option duration-option${selected ? " selected" : ""}`}
-                  key={option}
-                  disabled={!available}
-                  aria-pressed={selected}
-                  onClick={() => onDurationChange(option)}
-                >
-                  {option}
-                  {!available && <LockKeyhole className="settings-lock" size={12} aria-label="当前工作流不支持" />}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-    </div>
-  );
+export function GenerationSettings({ kind, quality, ratio, duration, fixedResolution, resolutionLabel, supportedQualities, supportedRatios, supportedDurations, onQualityChange, onRatioChange, onDurationChange }: GenerationSettingsProps) {
+  return <div className="generation-settings" aria-label="生成参数设置">
+    <section className="generation-settings-group">
+      <h3>分辨率</h3>
+      {fixedResolution ? <p className="generation-settings-note">{resolutionLabel}</p> : <div className="resolution-options">{supportedQualities.map(option => <button type="button" key={option} className={`settings-option resolution-option${quality === option ? " selected" : ""}`} aria-pressed={quality === option} onClick={() => onQualityChange(option)}>{option}</button>)}</div>}
+    </section>
+    <section className="generation-settings-group">
+      <h3>比例</h3>
+      {!supportedRatios.length && <p className="generation-settings-note">由工作流或输入素材决定</p>}
+      <div className="ratio-options">{supportedRatios.map(option => <button type="button" key={option} className={`settings-option ratio-option${ratio === option ? " selected" : ""}`} aria-pressed={ratio === option} onClick={() => onRatioChange(option)}><span className={`ratio-icon ratio-icon-${option.replace(":", "-").toLowerCase()}`} aria-hidden="true"/><span>{option}</span></button>)}</div>
+    </section>
+    {kind === "video" && <section className="generation-settings-group">
+      <h3>时长</h3>
+      <p className="generation-settings-note">{supportedDurations.length ? "标称时长，实际时长受工作流帧数取整影响" : "按驱动视频帧数生成，最多 3805 帧"}</p>
+      <div className="duration-options">{supportedDurations.map(option => <button type="button" key={option} className={`settings-option duration-option${duration === option ? " selected" : ""}`} aria-pressed={duration === option} onClick={() => onDurationChange(option)}>{option}</button>)}</div>
+    </section>}
+  </div>;
 }
