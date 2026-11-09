@@ -427,6 +427,35 @@ def test_delete_completed_task_requires_ownership_and_preserves_upload(client):
     with Session() as session:
         assert session.get(Upload, upload_id) is not None
 
+def test_asset_filter_delete_and_task_references(client, tmp_path, monkeypatch):
+    from app.db import Session, Upload
+    from app.main import cfg
+    monkeypatch.setattr(cfg, 'upload_dir', str(tmp_path))
+    register(client)
+    image = io.BytesIO()
+    Image.new('RGB', (4, 4), 'red').save(image, format='PNG')
+    upload_id = client.post('/api/uploads', files={'file': ('ref.png', image.getvalue(), 'image/png')}).json()['id']
+    with Session() as session:
+        owner = session.get(Upload, upload_id).user_id
+        session.add(Upload(id='video-asset', user_id=owner, path='video.mp4', content_type='video/mp4'))
+        session.commit()
+    (tmp_path / 'video.mp4').write_bytes(b'video')
+    assert [x['id'] for x in client.get('/api/uploads?kind=image').json()] == [upload_id]
+    assert [x['id'] for x in client.get('/api/uploads?kind=video').json()] == ['video-asset']
+    all_assets = client.get('/api/uploads?kind=all').json()
+    assert {x['id'] for x in all_assets} == {upload_id, 'video-asset'}
+    assert [x['id'] for x in client.get('/api/uploads?kind=all&limit=1&offset=0').json()] == [all_assets[0]['id']]
+    assert [x['id'] for x in client.get('/api/uploads?kind=all&limit=1&offset=1').json()] == [all_assets[1]['id']]
+    task = client.post('/api/tasks', json={'kind':'image', 'model':'demo-image', 'prompt':'test', 'upload_id':upload_id}).json()
+    assert client.delete('/api/uploads/' + upload_id).status_code == 409
+    assert client.delete('/api/uploads/video-asset').status_code == 200
+    assert not (tmp_path / 'video.mp4').exists()
+    client.post('/api/auth/logout')
+    register(client, 'other@example.com')
+    assert client.delete('/api/uploads/' + upload_id).status_code == 404
+    assert client.get('/api/uploads/' + upload_id + '/content').status_code == 404
+    assert client.get('/api/tasks/' + task['id']).status_code == 404
+
 def test_upload_deduplicates_per_user_and_restores_missing_file(client):
     from app.db import Session, Upload
     register(client)
@@ -515,6 +544,46 @@ def test_three_video_workflows_map_inputs_and_requirements(client):
         graph = build_workflow(model,'video','自定义内容',options,'ref.png',None,'drive.mp4')
         assert graph[image_node]['inputs']['image'] == 'ref.png' and graph[video_node]['inputs']['file'] == 'drive.mp4'
     assert build_workflow('Wan SCAIL2 角色替换','video','自定义内容',options,'ref.png',None,'drive.mp4')['262:258']['inputs']['text'] == '自定义内容'
+
+
+@pytest.mark.parametrize('model,source,output', [('Wan SCAIL2 角色替换', '215', '270'), ('Wan Animate2 动作迁移', '288', '245')])
+@pytest.mark.parametrize('frames,segments', [(1, 1), (81, 1), (82, 2), (157, 2), (158, 3)])
+def test_full_driving_video_graph(client, model, source, output, frames, segments):
+    import shutil
+    from app.workflows import build_workflow, extend_driving_video, WorkflowError
+    directory = Path(settings().workflow_config).parent
+    origin = Path(__file__).resolve().parents[1] / 'workflows'
+    for name in ('registry.json', 'wan21_scail2_character_replacement.json', 'wan_animate2_distilled.json'):
+        shutil.copy(origin / name, directory / name)
+    registry.cache_clear()
+    graph = extend_driving_video(build_workflow(model, 'video', 'test', {}, 'ref.png', None, 'drive.mp4'), model, frames)
+    assert graph['full_last']['inputs']['image'] == [source, 0]
+    assert len(graph['full_join']['inputs']) == segments
+    assert graph['full_crop']['inputs']['length'] == frames
+    assert graph[output]['inputs']['images'] == ['full_crop', 0]
+    if segments > 1 and model.startswith('Wan SCAIL2'):
+        assert graph['full_scail_1:259']['inputs']['previous_frames'] == ['213:6', 0]
+        for node in ('213:180', '213:182', 'full_scail_1:238', 'full_scail_1:239'):
+            assert graph[node]['inputs']['values.a'] == ['263', 0]
+            assert graph[node]['inputs']['values.b'] == ['263', 1]
+        width_expr = graph['213:180']['inputs']['expression']
+        height_expr = graph['213:182']['inputs']['expression']
+        for width, height in ((1080, 1920), (1920, 1080), (1024, 1024)):
+            values = {'a': width, 'b': height, 'min': min, 'max': max}
+            result_width = eval(width_expr, {'__builtins__': {}}, values)
+            result_height = eval(height_expr, {'__builtins__': {}}, values)
+            assert result_width % 32 == result_height % 32 == 0
+            assert (result_width > result_height) == (width > height)
+            assert (result_width < result_height) == (width < height)
+    if segments > 1 and model.startswith('Wan Animate2'):
+        assert graph['full_animate_1:247']['inputs']['video_frame_offset'] == ['261:247', 5]
+        assert graph['full_animate_1:247']['inputs']['continue_motion'] == ['261:6', 0]
+    for node in graph.values():
+        for value in node.get('inputs', {}).values():
+            if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str) and isinstance(value[1], int):
+                assert value[0] in graph
+    with pytest.raises(WorkflowError):
+        extend_driving_video(graph, model, 3806)
 
 
 def test_video_upload_and_task_snapshot(client, tmp_path, monkeypatch):

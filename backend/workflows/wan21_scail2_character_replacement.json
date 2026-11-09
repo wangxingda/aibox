@@ -538,10 +538,14 @@
   },
   "213:180": {
     "inputs": {
-      "expression": "(a // 32) * 32",
+      "expression": "max(32, (a * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "213:178",
+        "263",
         0
+      ],
+      "values.b": [
+        "263",
+        1
       ]
     },
     "class_type": "ComfyMathExpression",
@@ -553,10 +557,14 @@
   },
   "213:182": {
     "inputs": {
-      "expression": "(a // 32) * 32",
+      "expression": "max(32, (b * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "213:179",
+        "263",
         0
+      ],
+      "values.b": [
+        "263",
+        1
       ]
     },
     "class_type": "ComfyMathExpression",
@@ -1233,10 +1241,14 @@
   },
   "262:238": {
     "inputs": {
-      "expression": "(a // 32) * 32",
+      "expression": "max(32, (a * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "262:236",
+        "263",
         0
+      ],
+      "values.b": [
+        "263",
+        1
       ]
     },
     "class_type": "ComfyMathExpression",
@@ -1248,10 +1260,14 @@
   },
   "262:239": {
     "inputs": {
-      "expression": "(a // 32) * 32",
+      "expression": "max(32, (b * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "262:237",
+        "263",
         0
+      ],
+      "values.b": [
+        "263",
+        1
       ]
     },
     "class_type": "ComfyMathExpression",

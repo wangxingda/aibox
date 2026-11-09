@@ -21,13 +21,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pwdlib import PasswordHash
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import case, delete, select
+from sqlalchemy import case, delete, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
 from .config import settings
 from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, engine
-from .workflows import WorkflowError, build_workflow, registry
+from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
 from .output_storage import local_output
 
 cfg = settings()
@@ -197,8 +197,9 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(curren
     return {'id': upload_id, 'deduplicated': False}
 
 @app.get('/api/uploads')
-def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0):
-    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, Upload.content_type.like('image/%')).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
+def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'all'] = 'image'):
+    media_filter = or_(Upload.content_type.like('image/%'), Upload.content_type.like('video/%')) if kind == 'all' else Upload.content_type.like(f'{kind}/%')
+    rows = session.scalars(select(Upload).where(Upload.user_id == user.id, media_filter).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
     return [{'id': row.id, 'content_type': row.content_type, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
 
 @app.post('/api/uploads/video', status_code=201)
@@ -265,6 +266,24 @@ def upload_content(upload_id: str, user: User = Depends(current_user), session: 
         raise HTTPException(404, '素材文件不存在')
     return FileResponse(path, media_type=upload.content_type, headers={'Cache-Control': 'private, max-age=60', 'X-Content-Type-Options': 'nosniff'})
 
+@app.delete('/api/uploads/{upload_id}')
+def delete_upload(upload_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    upload = session.get(Upload, upload_id)
+    if not upload or upload.user_id != user.id:
+        raise HTTPException(404, '素材不存在')
+    in_use = session.scalar(select(Task.id).where(or_(Task.upload_id == upload_id, Task.options['second_upload_id'].as_string() == upload_id, Task.options['video_upload_id'].as_string() == upload_id)).limit(1)) or session.scalar(select(TaskInputAsset.task_id).where(TaskInputAsset.upload_id == upload_id).limit(1))
+    if in_use:
+        raise HTTPException(409, '素材正在被作品使用，请先删除相关作品')
+    path = cfg.path(cfg.upload_dir) / Path(upload.path).name
+    session.delete(upload)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, '素材正在被作品使用，请先删除相关作品')
+    path.unlink(missing_ok=True)
+    return {'deleted': True}
+
 @app.post('/api/tasks', status_code=202)
 def create_task(data: TaskInput, user: User = Depends(current_user), session: DBSession = Depends(db), idempotency_key: str | None = Header(default=None, alias='Idempotency-Key')):
     prompt = data.prompt.strip()
@@ -304,6 +323,17 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
     options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
     try:
         workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None)
+        if data.video_upload_id and data.model in ('Wan SCAIL2 角色替换', 'Wan Animate2 动作迁移'):
+            driving = session.get(Upload, data.video_upload_id)
+            path = cfg.path(cfg.upload_dir) / Path(driving.path).name
+            try:
+                probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-of', 'json', str(path)], capture_output=True, timeout=120, check=True)
+                frame_count = int(json.loads(probe.stdout)['streams'][0]['nb_read_frames'])
+            except FileNotFoundError:
+                raise HTTPException(503, '服务端未安装视频检查工具')
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, IndexError, OSError):
+                raise HTTPException(422, '无法读取驱动视频的帧数')
+            workflow = extend_driving_video(workflow, data.model, frame_count)
     except WorkflowError as exc:
         raise HTTPException(422, str(exc))
     task = Task(id=str(uuid.uuid4()), user_id=user.id, kind=data.kind, model=data.model, prompt=prompt, upload_id=data.upload_id, options=options, status='queued', progress=0, outputs=[])

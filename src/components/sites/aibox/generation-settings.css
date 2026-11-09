@@ -1,19 +1,58 @@
+.generation-settings-anchor {
+  position: relative;
+  min-width: 0;
+}
+
 .generation-settings-popover {
   position: absolute;
-  z-index: 8;
-  width: 400px;
-  max-width: calc(100vw - 120px);
+  z-index: 12;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: min(440px, calc(100vw - 120px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 
-.generation-settings-create {
-  right: 200px;
-  top: 120px;
+.generation-anchor-editor {
+  width: 100%;
 }
 
-.generation-settings-editor {
-  left: calc(100% + 8px);
-  top: 0;
+.workspace .generation-settings-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #405052;
+  border-radius: 9px;
+  background: #293234;
+  color: #dce8ec;
+  font-weight: 700;
+  text-align: left;
 }
+
+.generation-anchor-editor .generation-settings-trigger { width: 100%; }
+.generation-settings-trigger span { flex: 1; min-width: 0; }
+.generation-settings-trigger svg { flex: none; }
+.generation-settings-trigger .is-open { transform: rotate(180deg); }
+.generation-settings-trigger:focus-visible { outline: 2px solid #73d9e8; outline-offset: 2px; }
+
+.fixed-resolution {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.fixed-resolution > span {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #394344;
+  color: #dffcff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.fixed-resolution .generation-settings-note { margin: 0; }
 
 .generation-settings {
   display: grid;
@@ -34,6 +73,9 @@
 }
 
 .generation-settings-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 7px;
   color: #aeb8b9;
   font-size: 12px;
@@ -87,6 +129,10 @@
   color: #dffcff;
   font-weight: 700;
 }
+
+.workspace .generation-settings .settings-option { background: transparent; padding: 0; color: #c2cbcc; }
+.workspace .generation-settings .settings-option:hover { background: #303738; color: #f3ffff; }
+.workspace .generation-settings .settings-option.selected { background: #394344; color: #dffcff; }
 
 .settings-option:focus-visible {
   outline: 2px solid #73d9e8;
@@ -160,17 +206,7 @@
 
 @media (max-width: 900px) {
   .generation-settings-popover {
-    width: min(400px, calc(100vw - 108px));
+    width: min(440px, calc(100vw - 108px));
     max-width: none;
-  }
-
-  .generation-settings-editor {
-    left: 0;
-    bottom: 52px;
-  }
-
-  .generation-settings-create {
-    right: 0;
-    top: calc(100% + 8px);
   }
 }

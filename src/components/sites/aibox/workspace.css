@@ -8,6 +8,65 @@
 .editor-tabs a:has(svg), .create-tabs button:has(svg) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .editor-tabs a svg, .create-tabs button svg { flex: none; color: #80dfeb; }
 
-.workspace .upload-thumbnail { display: block; width: 48px; height: 48px; flex: none; border: 1px solid #53666a; border-radius: 7px; object-fit: cover; background: #171c1e; }
-.workspace .create-upload .upload-thumbnail { width: 38px; height: 38px; }
-.editor-generate { margin-bottom: 20px; flex-shrink: 0; }
+.workspace .upload-thumbnail { display: block; width: auto; height: auto; max-width: 160px; max-height: 120px; flex: none; border: 1px solid #53666a; border-radius: 7px; object-fit: contain; background: #171c1e; }
+.workspace .editor-upload { height: auto; min-height: 102px; padding: 12px; }
+.workspace .create-box { height: auto; min-height: 235px; }
+.workspace .create-input { height: auto; min-height: 150px; overflow-x: auto; }
+.workspace .create-input textarea { min-width: 100px; }
+.workspace .create-upload { width: 108px; height: 126px; gap: 4px; }
+.workspace .create-upload .upload-thumbnail { max-width: 100px; max-height: 96px; }
+.workspace .create-upload small { max-width: 100px; }
+.editor-generate { margin-top: 0; margin-bottom: 20px; flex-shrink: 0; }
+.asset-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+.asset-filters { display:flex; gap:8px; margin:16px 0; }
+.asset-filters button, .asset-upload-button, .asset-choose, .asset-card > button { border:1px solid #445154; border-radius:8px; background:#273134; color:#e5f4f5; padding:9px 14px; cursor:pointer; }
+.asset-filters button.selected { background:#3b5559; color:#80e8ef; }
+.asset-upload-button input { display:none; }
+.asset-card { min-width:0; display:grid; gap:8px; }
+.asset-grid .asset-media { display:block; width:100%; aspect-ratio:1; border:0; padding:0; background:#1d2325; border-radius:12px; overflow:hidden; }
+.asset-media img, .asset-media video { width:100%; height:100%; object-fit:contain; }
+.asset-picker-overlay { position:fixed; inset:0; z-index:30; background:#000b; display:flex; align-items:center; justify-content:center; padding:20px; }
+.asset-picker-dialog { width:min(800px,100%); max-height:85vh; overflow:auto; background:#191f21; border:1px solid #445154; border-radius:16px; padding:20px; }
+.asset-picker-dialog > header { position:static; height:auto; padding:0; display:flex; justify-content:space-between; background:none; }
+.asset-picker-dialog > header button { border:0; background:none; color:white; font-size:24px; }
+.asset-choose { flex:none; align-self:center; }
+.media-input { position:relative; display:flex; flex-direction:column; gap:10px; padding:12px; border:1px solid #39494c; border-radius:12px; background:#22292b; min-width:0; }
+.media-input-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; color:#edf6f6; font-size:13px; }
+.media-input-heading strong { min-width:0; line-height:1.35; }
+.media-input-requirement { flex:none; padding:3px 7px; border-radius:5px; font-size:12px; font-weight:700; line-height:1.3; }
+.media-input-requirement.is-required { color:#ffd9c5; background:#743d2e; border:1px solid #d97e59; }
+.media-input-requirement.is-optional { color:#c4d8da; background:#344447; border:1px solid #60777a; }
+.media-input-preview { display:flex; align-items:center; gap:12px; min-width:0; min-height:96px; color:#a5b0b3; }
+.media-input-preview:focus-visible { outline:2px solid #6ddbe7; outline-offset:3px; border-radius:8px; }
+.media-input-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+.media-input-actions { display:flex; gap:8px; }
+.media-input-actions button, .media-input-upload { flex:1; text-align:center; border:1px solid #4b6265; border-radius:7px; background:#303c3e; color:#e5f4f5; padding:8px 10px; font-size:12px; cursor:pointer; }
+.media-input-actions .media-input-upload { background:#7adfe5; border-color:#7adfe5; color:#102a2e; font-weight:700; }
+.media-input-actions .media-input-import { flex:1.5; background:transparent; border-color:#6ca4a8; color:#b8f1ef; font-weight:600; }
+.media-input-actions .media-input-upload:hover { background:#a3eef0; }
+.media-input-actions .media-input-import:hover { background:#294145; }
+.media-input-upload { position:relative; }
+.media-input-upload input { position:absolute; width:1px; height:1px; opacity:0; }
+.media-input-upload:focus-within { outline:2px solid #6ddbe7; outline-offset:2px; }
+.media-input-remove { align-self:flex-end; border:0; background:#182124dd; color:#d9e7e9; border-radius:5px; padding:4px 7px; font-size:11px; }
+.workspace .create-input .media-input { width:180px; flex:none; }
+.workspace .create-input .media-input-preview { min-height:80px; flex-direction:column; justify-content:center; gap:4px; }
+.workspace .create-input .media-input-preview .upload-thumbnail { max-width:120px; max-height:62px; }
+.workspace .create-input .media-input-preview .media-input-name { max-width:100%; }
+.workspace .create-input .media-input-actions { gap:5px; }
+.workspace .create-input .media-input-actions button, .workspace .create-input .media-input-upload { padding:7px 4px; }
+.media-hover-preview { position:fixed; z-index:100; width:min(360px, calc(100vw - 24px)); height:min(300px, calc(100vh - 24px)); display:flex; align-items:center; justify-content:center; padding:8px; background:#101719; border:1px solid #6c8d90; border-radius:12px; box-shadow:0 12px 36px #000b; pointer-events:none; }
+.media-hover-preview img, .media-hover-preview video { width:100%; height:100%; object-fit:contain; border-radius:6px; }
+.auth-dialog-backdrop { position:fixed; inset:0; z-index:120; display:grid; place-items:center; padding:20px; background:#000b; }
+.auth-dialog { position:relative; width:min(440px,100%); padding:32px; border:1px solid #405052; border-radius:16px; background:#1a2224; box-shadow:0 20px 70px #000a; text-align:left; }
+.auth-dialog h2 { margin:0 30px 10px 0; font-size:24px; }
+.auth-dialog > p { color:#aabbbd; margin:0 0 20px; }
+.workspace .auth-dialog-close { position:absolute; right:16px; top:12px; border:0; background:none; color:#d8e4e5; font-size:26px; }
+.auth-dialog form { display:grid; gap:14px; }
+.auth-dialog label { display:grid; gap:7px; color:#dce9e9; font-weight:600; }
+.auth-dialog input { width:100%; height:44px; padding:0 12px; border:1px solid #405052; border-radius:8px; background:#111819; color:#fff; }
+.auth-dialog input:focus-visible { outline:2px solid #73d9e8; outline-offset:2px; }
+.workspace .auth-dialog-submit { min-height:44px; border:0; border-radius:8px; background:linear-gradient(100deg,#c9ffee,#59e0ef,#299ff8); color:#102a30; font-weight:700; }
+.auth-dialog .auth-dialog-error { margin:0; color:#ffd1c1; }
+.auth-dialog .auth-dialog-switch { margin:20px 0 0; text-align:center; }
+.workspace .auth-dialog-switch button { border:0; background:none; color:#70e4ee; font-weight:700; }
