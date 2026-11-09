@@ -1,4 +1,5 @@
 import io
+import asyncio
 import hashlib
 import re
 import json
@@ -9,13 +10,14 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 import httpx
 import jwt
 import redis
 from fastapi import Cookie, Depends, FastAPI, File, HTTPException, Header, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pwdlib import PasswordHash
 from pydantic import BaseModel, EmailStr, Field
@@ -26,6 +28,7 @@ from sqlalchemy.orm import Session as DBSession
 from .config import settings
 from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, engine
 from .workflows import WorkflowError, build_workflow, registry
+from .output_storage import local_output
 
 cfg = settings()
 password_hash = PasswordHash.recommended()
@@ -85,8 +88,17 @@ class TaskInput(BaseModel):
     ratio: Literal['16:9', '9:16', '1:1', 'auto'] = '16:9'
     duration: Literal['5s', '10s'] = '5s'
 
+def redact_service_address(message: str | None) -> str | None:
+    if not message:
+        return message
+    parsed = urlsplit(cfg.comfyui_url)
+    for value in (cfg.comfyui_url.rstrip('/'), parsed.netloc, parsed.hostname):
+        if value:
+            message = message.replace(value, '[生成服务]')
+    return message
+
 def serialize(task: Task) -> dict:
-    return {'id': task.id, 'kind': task.kind, 'model': task.model, 'prompt': task.prompt, 'upload_id': task.upload_id, 'status': task.status, 'progress': task.progress, 'options': task.options, 'error': task.error, 'created_at': task.created_at.isoformat() + 'Z', 'updated_at': task.updated_at.isoformat() + 'Z', 'outputs': [{'url': f'/api/tasks/{task.id}/outputs/{i}'} for i in range(len(task.outputs or []))]}
+    return {'id': task.id, 'kind': task.kind, 'model': task.model, 'prompt': task.prompt, 'upload_id': task.upload_id, 'status': task.status, 'progress': task.progress, 'options': task.options, 'error': redact_service_address(task.error), 'created_at': task.created_at.isoformat() + 'Z', 'updated_at': task.updated_at.isoformat() + 'Z', 'outputs': [{'url': f'/api/tasks/{task.id}/outputs/{i}'} for i in range(len(task.outputs or []))]}
 
 def cache_task(task: Task):
     try:
@@ -337,6 +349,7 @@ def get_task(task_id: str, user: User = Depends(current_user), session: DBSessio
                 and snapshot.get('progress') == task.progress
                 and snapshot.get('error') == task.error
                 and len(snapshot.get('outputs', [])) == len(task.outputs or [])):
+                snapshot['error'] = redact_service_address(snapshot.get('error'))
                 return snapshot
     except (redis.RedisError, ValueError):
         pass
@@ -366,7 +379,7 @@ def task_events(task_id: str, user: User = Depends(current_user), session: DBSes
     own_task(session, user, task_id)
     order = case({'queued': 0, 'submitting': 1, 'running': 2, 'completed': 3, 'failed': 3, 'unknown': 3}, value=TaskEvent.status, else_=4)
     events = session.scalars(select(TaskEvent).where(TaskEvent.task_id == task_id).order_by(TaskEvent.created_at, order, TaskEvent.id)).all()
-    return [{'status': event.status, 'message': event.message, 'created_at': event.created_at.isoformat() + 'Z'} for event in events]
+    return [{'status': event.status, 'message': redact_service_address(event.message), 'created_at': event.created_at.isoformat() + 'Z'} for event in events]
 
 @app.get('/api/tasks/{task_id}/outputs/{index}')
 async def output(task_id: str, index: int, request: Request, download: bool = False, user: User = Depends(current_user), session: DBSession = Depends(db)):
@@ -374,34 +387,14 @@ async def output(task_id: str, index: int, request: Request, download: bool = Fa
     if index < 0 or index >= len(task.outputs or []):
         raise HTTPException(404, '文件不存在')
     item = task.outputs[index]
-    headers = {'Authorization': f'Bearer {cfg.comfyui_token}'} if cfg.comfyui_token else {}
-    client = httpx.AsyncClient(timeout=60)
-    if request.headers.get('range'):
-        headers['Range'] = request.headers['range']
     try:
-        upstream = client.build_request('GET', cfg.comfyui_url.rstrip('/') + '/view', params={'filename': item['filename'], 'subfolder': item.get('subfolder', ''), 'type': item.get('type') or 'output'}, headers=headers)
-        result = await client.send(upstream, stream=True)
-        result.raise_for_status()
-    except (httpx.HTTPError, KeyError):
-        await client.aclose()
-        raise HTTPException(502, '无法从生成服务读取文件')
-    async def stream():
-        try:
-            async for chunk in result.aiter_bytes():
-                yield chunk
-        finally:
-            await result.aclose()
-            await client.aclose()
-    media_type = result.headers.get('content-type', '').split(';', 1)[0].lower()
-    allowed_media = {'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm'}
-    safe_headers = {'Cache-Control': 'private, max-age=60', 'X-Content-Type-Options': 'nosniff'}
-    for name in ('content-range', 'accept-ranges', 'content-length'):
-        if name in result.headers:
-            safe_headers[name] = result.headers[name]
-    if download and media_type in allowed_media:
-        extension = {'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm'}[media_type]
-        safe_headers['Content-Disposition'] = f'attachment; filename="aibox-{task.id}-{index + 1}.{extension}"'
-    if media_type not in allowed_media:
-        media_type = 'application/octet-stream'
-        safe_headers['Content-Disposition'] = 'attachment'
-    return StreamingResponse(stream(), status_code=result.status_code, media_type=media_type, headers=safe_headers)
+        saved = local_output(task.id, index, item)
+    except (OSError, ValueError, TypeError, KeyError):
+        saved = None
+    if saved is None:
+        raise HTTPException(404, '作品文件不存在。')
+    path, media_type = saved
+    suffix = path.suffix
+    return FileResponse(path, media_type=media_type,
+                        filename=f'aibox-{task.id}-{index + 1}{suffix}' if download else None,
+                        headers={'Cache-Control': 'private, max-age=60', 'X-Content-Type-Options': 'nosniff'})

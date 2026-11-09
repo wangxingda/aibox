@@ -25,12 +25,12 @@ stateDiagram-v2
     submitting --> running: ComfyUI 接受
     submitting --> failed: 明确的准备或验证失败
     submitting --> unknown: 提交结果不确定
-    running --> completed: history 返回输出
+    running --> completed: 结果保存至网站服务器
     running --> failed: 执行失败或无输出
     running --> unknown: 超时且结果无法确认
 ```
 
-任务及输入、初始事件、请求标识和工作流快照在一个事务中创建。worker 使用 MySQL 8+ `FOR UPDATE SKIP LOCKED` 领取排队任务，转换状态时锁定任务并检查原状态，避免迟到的 worker 覆盖终态。状态、最终进度和输出在同一事务中更新；实时进度由 worker 在提交前连接 ComfyUI `/ws`，按匹配 prompt ID 的 `progress`、`executing`、`executed`、`execution_cached` 事件估算工作流节点进度并单调写入 MySQL，最终完成时置为 100%。运行中的任务仍通过 `/history/{prompt_id}` 确认结果，前端每 3 秒刷新任务列表；Redis 是可丢弃的短期缓存，MySQL 为权威来源。若 ComfyUI WebSocket 不可用，卡片保留已知状态和最近一次进度（没有收到进度时为 0%），完成结果仍由 history 轮询确认。超时或提交结果不确定时不会重发 `/prompt`，避免重复生成；目前需要管理员按 `comfy_prompt_id` 在 ComfyUI 核对，尚无自动对账或重试界面。
+任务及输入、初始事件、请求标识和工作流快照在一个事务中创建。worker 使用 MySQL 8+ `FOR UPDATE SKIP LOCKED` 领取排队任务，转换状态时锁定任务并检查原状态，避免迟到的 worker 覆盖终态。状态、最终进度和输出在同一事务中更新；实时进度由 worker 在提交前连接 ComfyUI `/ws`，按匹配 prompt ID 的 `progress`、`executing`、`executed`、`execution_cached` 事件估算工作流节点进度并单调写入 MySQL，最终完成时置为 100%。运行中的任务仍通过 `/history/{prompt_id}` 确认结果，下载到上传卷 `_outputs/` 后才标记完成，前端每 3 秒刷新任务列表；Redis 是可丢弃的短期缓存，MySQL 为权威来源。若 ComfyUI WebSocket 不可用，卡片保留已知状态和最近一次进度（没有收到进度时为 0%），完成结果仍由 history 轮询确认。超时或提交结果不确定时不会重发 `/prompt`，避免重复生成；目前需要管理员按 `comfy_prompt_id` 在 ComfyUI 核对，尚无自动对账或重试界面。
 
 前端先上传需要的素材，记录上传 ID，再以 `Idempotency-Key` 提交任务。页面停留期间相同输入重试会复用上传 ID 和请求键；刷新页面后表单和该键不会保留。任务列表按账号和图片/视频类型分页，并轮询当前可见页；生成成功后图片或视频通过带账户校验的站内地址访问。素材库只列出当前用户上传的图片。上传接口校验图片或视频后计算原始文件字节的 SHA-256，按 `(user_id, sha256)` 唯一约束去重；重复上传返回已有素材 ID，并标记 `deduplicated: true`。并发上传由数据库唯一索引裁决，落选文件会删除。不同用户各自保存素材；内容相似但字节不同的文件不合并。已登记文件丢失时，相同内容再次上传会恢复该文件。历史图片迁移按用户和摘要合并记录，更新任务主图、第二张图及输入关联，提交后删除无引用的重复文件；缺失文件保留记录，不进行猜测合并。
 
@@ -45,4 +45,4 @@ stateDiagram-v2
 
 ## 边界
 
-模型可用性以服务端工作流注册表为准，页面只显示对应创作模式的模型。ComfyUI 端保存最终输出；如果其文件被清理，历史记录仍在但无法播放。没有对象存储、文件清理策略、邮件验证、密码重置、登录限流、会话撤销或多租户管理；JWT 登出只清除浏览器 cookie。公网部署前应补齐这些能力、使用 HTTPS 并保护 MySQL、Redis 和 ComfyUI。远端多服务实例、断点恢复和业务配额不在本版实现范围。
+模型可用性以服务端工作流注册表为准，页面只显示对应创作模式的模型。新作品在任务完成前保存到网站服务器上传卷的 `_outputs/`；历史作品由 worker 分批补存，或在访问时补存。历史远端文件已经丢失时无法恢复；生成服务可能仍保留自己的副本。没有对象存储、文件清理策略、邮件验证、密码重置、登录限流、会话撤销或多租户管理；JWT 登出只清除浏览器 cookie。公网部署前应补齐这些能力、使用 HTTPS 并保护 MySQL、Redis 和 ComfyUI。远端多服务实例、断点恢复和业务配额不在本版实现范围。

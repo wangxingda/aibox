@@ -41,7 +41,7 @@ python3 -m venv backend/.venv
 backend/.venv/bin/pip install -r backend/requirements.txt
 ```
 
-首次配置时，将 `.env.example` 复制为 `.env.local`、将 `backend/.env.example` 复制为 `backend/.env`，并按实际环境填写数据库、Redis、JWT 和 ComfyUI 配置；已有配置的环境无需覆盖。`COMFYUI_URL` 可通过环境变量覆盖，示例值为 `http://www.360.cn/comfy_0.43.0_url`，以实际可访问的服务为准。
+首次配置时，将 `.env.example` 复制为 `.env.local`、将 `backend/.env.example` 复制为 `backend/.env`，并按实际环境填写数据库、Redis、JWT 和 ComfyUI 配置；已有配置的环境无需覆盖。`COMFYUI_URL` 可通过环境变量覆盖，应填写服务器可访问的生成服务地址，勿将真实地址提交到仓库。
 
 在配置好并启动 MySQL 和 Redis 后，分别在三个终端执行：
 
@@ -80,6 +80,7 @@ redis-server --bind 127.0.0.1 --port 16379 \
 
 ## 功能与数据
 
+- 用户上传素材和生成结果保存在网站服务器的上传数据卷中；新作品在持久化完成后才显示为已完成。历史作品会从生成服务逐步补存。
 - 图片功能包括文生图和图片编辑；视频功能包括图生音视频、文生音视频、角色替换和动作迁移。各模式的输入要求以服务端模型目录和 [工作流说明](backend/README.md#配置工作流) 为准。
 - 图片和视频参考示例保存在 `public/sites/aibox/`，一键同款会填入对应提示词与可用的参考素材；实际生成效果取决于当前模型和参数。
 - 任务在当前页面的“我的作品”中显示状态、进度和结果；已完成任务支持编辑回填、下载和删除。素材按用户隔离，并按文件内容去重。

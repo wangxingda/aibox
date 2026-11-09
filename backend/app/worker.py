@@ -17,6 +17,7 @@ from sqlalchemy import select
 from .config import settings
 from .db import Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskWorkflowSnapshot, Upload, utcnow
 from .main import cache_task
+from .output_storage import persist_output
 from .workflows import WorkflowError, build_workflow
 
 cfg = settings()
@@ -337,10 +338,12 @@ def poll_running():
                         if isinstance(item, dict) and isinstance(item.get('filename'), str):
                             outputs.append({k: item.get(k, '') for k in ('filename', 'subfolder', 'type')})
             if outputs:
+                for index, item in enumerate(outputs):
+                    persist_output(task_id, index, item)
                 update(task_id, 'completed', outputs=outputs, expected={'running'})
             else:
                 update(task_id, 'failed', '工作流已完成，但没有可读取的图片或视频输出。', expected={'running'})
-        except (httpx.HTTPError, ValueError, TypeError, KeyError):
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError):
             log.warning('Cannot poll ComfyUI task %s', task_id, exc_info=True)
             if timed_out:
                 update(task_id, 'unknown', '无法确认超时任务状态，请联系管理员核对生成服务。', expected={'running'})

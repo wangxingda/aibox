@@ -35,15 +35,15 @@ FastAPI 提供账户、图片和视频上传、模型目录与生成任务接口
 
 `inputs` 的值是 `节点ID.输入字段`，也可使用目标数组将同一个值写入多个节点。支持 `prompt`、`image`、`image2`、`video`、`seed`、`quality`、`ratio`、`duration`；`seed` 自动随机生成。`requires_prompt`、`requires_image`、`requires_second_image`、`requires_video` 定义必填项；`default_prompt`、`optional_input_defaults` 和 `static_inputs` 分别设置默认提示词、可选输入默认值和固定节点值。`modes` 控制前端展示，`hidden` 可保留旧工作流兼容性，`output_nodes` 限定需要收集的输出节点。
 
-配置 `value_maps` 可转换比例与时长等枚举值，否则值按前端原样传入，因此若工作流需要数字宽高、帧数或其他类型，需先按具体工作流扩展转换逻辑，不能直接套用示例。参考图片和驱动视频会上传到 ComfyUI 的 `/upload/image`；任务通过 `/prompt` 提交，以 `/history/{prompt_id}` 查询状态并由 `/view` 代理输出。视频工作流必须在 history 的 `videos`、`gifs` 或 `images` 输出中提供 `filename`、`subfolder`、`type`。完成配置后重启 API 和 worker 以刷新配置缓存。
+配置 `value_maps` 可转换比例与时长等枚举值，否则值按前端原样传入，因此若工作流需要数字宽高、帧数或其他类型，需先按具体工作流扩展转换逻辑，不能直接套用示例。参考图片和驱动视频会上传到 ComfyUI 的 `/upload/image`；任务通过 `/prompt` 提交，以 `/history/{prompt_id}` 查询状态；完成后通过 `/view` 下载结果，保存到网站服务器的上传卷 `_outputs/` 目录，再标记任务完成。视频工作流必须在 history 的 `videos`、`gifs` 或 `images` 输出中提供 `filename`、`subfolder`、`type`。完成配置后重启 API 和 worker 以刷新配置缓存。
 
 ## 主要 API
 
 接口的完整参数以运行中的 `/docs` 为准。注册、登录、登出和当前账户接口位于 `/api/auth/`；`GET /api/models` 返回当前可见模型及输入要求。`POST /api/uploads` 上传图片，`POST /api/uploads/video` 上传驱动视频，`GET /api/uploads` 返回当前用户的图片素材；素材内容通过 `/api/uploads/{id}/content` 读取。重复素材按用户和文件内容去重。
 
-`POST /api/tasks` 创建任务，可通过 `Idempotency-Key` 防止重复提交；`GET /api/tasks` 和 `GET /api/tasks/{id}` 获取列表及详情，`/events` 获取状态事件，`/outputs/{index}` 读取或下载结果。`DELETE /api/tasks/{id}` 仅允许所有者删除已完成任务的站内记录；上传素材和 ComfyUI 输出文件不会随之删除。所有素材、任务及结果接口均校验账号归属。
+`POST /api/tasks` 创建任务，可通过 `Idempotency-Key` 防止重复提交；`GET /api/tasks` 和 `GET /api/tasks/{id}` 获取列表及详情，`/events` 获取状态事件，`/outputs/{index}` 读取或下载结果。`DELETE /api/tasks/{id}` 仅允许所有者删除已完成任务的站内记录；上传素材及输出文件不会随之删除。所有素材、任务及结果接口均校验账号归属。
 
-一个任务只尝试提交一次 `/prompt`。若连接中断、返回 5xx、worker 在提交时退出或任务超时，状态会变成“待确认”；请在 ComfyUI 侧按数据库里的 `comfy_prompt_id` 核对，系统不会自动重试以避免重复生成。数据库中的 `queued` 和 `running` 任务可在 worker 重启后继续处理。输出目前保存在 ComfyUI，结果访问依赖其文件保留策略；本服务不会清理 ComfyUI 文件。
+一个任务只尝试提交一次 `/prompt`。若连接中断、返回 5xx、worker 在提交时退出或任务超时，状态会变成“待确认”；请在 ComfyUI 侧按数据库里的 `comfy_prompt_id` 核对，系统不会自动重试以避免重复生成。数据库中的 `queued` 和 `running` 任务可在 worker 重启后继续处理。新作品在标记完成前会复制到网站服务器；历史作品由 worker 分批补存，用户访问时也会尝试补存。历史文件如果已被生成服务清理，无法恢复。生成服务可能仍保留自身输出副本，本服务不会自动删除其文件。
 
 账户为邮箱+密码，密码使用 Argon2 哈希，登录状态存放在 HttpOnly、SameSite=Lax cookie 中；用户只能访问自己的上传、任务和输出。该版本没有邮件验证、密码找回、限流、通用迁移框架、共享对象存储或商业支付，部署到公网前需补齐相应功能并使用 HTTPS、受保护的 MySQL/Redis 和专用的 ComfyUI 网络。
 

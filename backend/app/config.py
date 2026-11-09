@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     database_url: str = 'mysql+pymysql://aireel:change-me@127.0.0.1:3306/aireel?charset=utf8mb4'
     redis_url: str = 'redis://127.0.0.1:6379/0'
     jwt_secret: str = ''
-    comfyui_url: str = 'http://www.360.cn/comfy_0.43.0_url'
+    comfyui_url: str = 'http://127.0.0.1:8188'
     comfyui_token: str = ''
     cors_origins: str = 'http://localhost:3000,http://localhost:3001'
     cookie_secure: bool = False
