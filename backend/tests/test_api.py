@@ -538,15 +538,15 @@ def test_three_video_workflows_map_inputs_and_requirements(client):
     assert pika2['152']['inputs']['image'] == 'one.png' and pika2['151']['inputs']['image'] == 'two.png'
     with pytest.raises(WorkflowError, match='提示词'):
         build_workflow('Pika H3 参考图生视频','video','',options,None,None)
-    for model, image_node, video_node in [('Wan SCAIL2 角色替换','30','155'),('Wan Animate2 动作迁移','189','240')]:
+    for model, image_node, video_node in [('Wan SCAIL2 角色替换','292','33'),('Wan Animate2 动作迁移','189','240')]:
         with pytest.raises(WorkflowError, match='驱动视频'):
             build_workflow(model,'video','',options,'ref.png')
         graph = build_workflow(model,'video','自定义内容',options,'ref.png',None,'drive.mp4')
-        assert graph[image_node]['inputs']['image'] == 'ref.png' and graph[video_node]['inputs']['file'] == 'drive.mp4'
-    assert build_workflow('Wan SCAIL2 角色替换','video','自定义内容',options,'ref.png',None,'drive.mp4')['262:258']['inputs']['text'] == '自定义内容'
+        assert graph[image_node]['inputs']['image'] == 'ref.png' and graph[video_node]['inputs']['video' if video_node == '33' else 'file'] == 'drive.mp4'
+    assert build_workflow('Wan SCAIL2 角色替换','video','自定义内容',options,'ref.png',None,'drive.mp4')['3']['inputs']['text'] == '自定义内容'
 
 
-@pytest.mark.parametrize('model,source,output', [('Wan SCAIL2 角色替换', '215', '270'), ('Wan Animate2 动作迁移', '288', '245')])
+@pytest.mark.parametrize('model,source,output', [('Wan SCAIL2 角色替换', '33', '236'), ('Wan Animate2 动作迁移', '288', '245')])
 @pytest.mark.parametrize('frames,segments', [(1, 1), (81, 1), (82, 2), (157, 2), (158, 3)])
 def test_full_driving_video_graph(client, model, source, output, frames, segments):
     import shutil
@@ -562,19 +562,9 @@ def test_full_driving_video_graph(client, model, source, output, frames, segment
     assert graph['full_crop']['inputs']['length'] == frames
     assert graph[output]['inputs']['images'] == ['full_crop', 0]
     if segments > 1 and model.startswith('Wan SCAIL2'):
-        assert graph['full_scail_1:259']['inputs']['previous_frames'] == ['213:6', 0]
-        for node in ('213:180', '213:182', 'full_scail_1:238', 'full_scail_1:239'):
-            assert graph[node]['inputs']['values.a'] == ['263', 0]
-            assert graph[node]['inputs']['values.b'] == ['263', 1]
-        width_expr = graph['213:180']['inputs']['expression']
-        height_expr = graph['213:182']['inputs']['expression']
-        for width, height in ((1080, 1920), (1920, 1080), (1024, 1024)):
-            values = {'a': width, 'b': height, 'min': min, 'max': max}
-            result_width = eval(width_expr, {'__builtins__': {}}, values)
-            result_height = eval(height_expr, {'__builtins__': {}}, values)
-            assert result_width % 32 == result_height % 32 == 0
-            assert (result_width > result_height) == (width > height)
-            assert (result_width < result_height) == (width < height)
+        assert graph['full_scail_1:115']['inputs']['previous_frames'] == ['6', 0]
+        assert graph['full_width']['inputs']['values.a'] == ['full_size', 0]
+        assert graph['33']['inputs']['force_rate'] == 0
     if segments > 1 and model.startswith('Wan Animate2'):
         assert graph['full_animate_1:247']['inputs']['video_frame_offset'] == ['261:247', 5]
         assert graph['full_animate_1:247']['inputs']['continue_motion'] == ['261:6', 0]
@@ -664,3 +654,26 @@ def test_text_to_video_uses_pika_without_reference_images(client):
     assert client.post('/api/tasks', json={**payload, 'second_upload_id': upload_id}).status_code == 422
     assert client.post('/api/tasks', json={**payload, 'prompt': ''}).status_code == 422
     assert client.post('/api/tasks', json={**payload, 'model': 'Wan Animate2 动作迁移'}).status_code == 422
+
+
+def test_cancel_tasks(client, monkeypatch):
+    import httpx
+    from app import worker
+    register(client)
+    first = client.post('/api/tasks', json={'kind': 'image', 'model': 'demo-image', 'prompt': 'draw'}).json()
+    assert client.post(f"/api/tasks/{first['id']}/cancel").status_code == 200
+    assert client.get(f"/api/tasks/{first['id']}").status_code == 404
+    task = client.post('/api/tasks', json={'kind': 'image', 'model': 'demo-image', 'prompt': 'draw'}).json()
+    assert worker.claim() == task['id']
+    assert client.post(f"/api/tasks/{task['id']}/cancel").status_code == 409
+    assert worker.update(task['id'], 'running', expected={'submitting'})
+    calls = []
+    def cancel(url, **kwargs):
+        calls.append(url)
+        return httpx.Response(200, json={'cancelled': len(calls) > 1}, request=httpx.Request('POST', url))
+    monkeypatch.setattr('app.main.httpx.post', cancel)
+    assert client.post(f"/api/tasks/{task['id']}/cancel").status_code == 409
+    assert client.get(f"/api/tasks/{task['id']}").status_code == 200
+    assert client.post(f"/api/tasks/{task['id']}/cancel").status_code == 200
+    assert '/api/jobs/' in calls[0] and calls[0].endswith('/cancel')
+    assert client.get(f"/api/tasks/{task['id']}").status_code == 404

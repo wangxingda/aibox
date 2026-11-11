@@ -21,7 +21,10 @@
     "modes": [
       "text-to-image"
     ],
-    "default_ratio": "1:1"
+    "default_ratio": "1:1",
+    "output_nodes": [
+      "461"
+    ]
   },
   "Qwen Image 2.1 图片编辑": {
     "kind": "image",
@@ -43,7 +46,10 @@
     "default_ratio": "1:1",
     "optional_input_defaults": {
       "image2": "None"
-    }
+    },
+    "output_nodes": [
+      "461"
+    ]
   },
   "Pika H3 参考图生视频": {
     "kind": "video",
@@ -97,25 +103,18 @@
     "fixed_resolution": true,
     "resolution_label": "由工作流与视频决定",
     "inputs": {
-      "prompt": [
-        "213:3.text",
-        "262:258.text"
-      ],
-      "image": "30.image",
-      "video": "155.file"
+      "prompt": "3.text",
+      "image": "292.image",
+      "video": "33.video"
     },
     "modes": [
       "character-replacement"
     ],
     "default_ratio": "16:9",
     "output_nodes": [
-      "271"
+      "236"
     ],
-    "default_prompt": "A person matching the reference image follows the movements in the driving video.",
-    "static_inputs": {
-      "213:191.text": "person",
-      "262:242.text": "person"
-    }
+    "default_prompt": "A person matching the reference image follows the movements in the driving video."
   },
   "Wan Animate2 动作迁移": {
     "kind": "video",

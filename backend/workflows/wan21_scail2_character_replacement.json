@@ -1,1649 +1,933 @@
 {
-  "30": {
+  "3": {
     "inputs": {
-      "image": "asian_model_in_white_clothes.png"
-    },
-    "class_type": "LoadImage",
-    "_meta": {
-      "title": "加载图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "155": {
-    "inputs": {
-      "file": "girl_eats_apple.mp4",
-      "video-preview": ""
-    },
-    "class_type": "LoadVideo",
-    "_meta": {
-      "title": "加载视频",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "201": {
-    "inputs": {
-      "fps": [
-        "215",
-        2
-      ],
-      "bit_depth": 8,
-      "color_space": "sRGB",
-      "codec": "none",
-      "images": [
-        "213:6",
+      "text": "两个人在跳舞",
+      "clip": [
+        "9",
         0
-      ],
-      "audio": [
-        "215",
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "4": {
+    "inputs": {
+      "text": "bad video",
+      "clip": [
+        "9",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "6": {
+    "inputs": {
+      "samples": [
+        "19",
         1
-      ]
-    },
-    "class_type": "CreateVideo",
-    "_meta": {
-      "title": "创建视频",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "202": {
-    "inputs": {
-      "filename_prefix": "video/ComfyUI",
-      "format": "auto",
-      "format.codec": "auto",
-      "codec": "auto",
-      "video": [
-        "201",
+      ],
+      "vae": [
+        "7",
         0
       ]
     },
-    "class_type": "SaveVideo",
+    "class_type": "VAEDecode",
     "_meta": {
-      "title": "Save Video (First Segement)",
+      "title": "VAE解码",
       "cnr_id": "comfy-core",
       "ver": "0.24.0"
     }
   },
-  "215": {
+  "7": {
     "inputs": {
-      "video": [
-        "155",
+      "vae_name": "Wan2_1_VAE_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "9": {
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "11": {
+    "inputs": {
+      "lora_name": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
+      "strength_model": 1.0000000000000002,
+      "model": [
+        "74",
         0
       ]
     },
-    "class_type": "GetVideoComponents",
+    "class_type": "LoraLoaderModelOnly",
     "_meta": {
-      "title": "获取视频元素",
+      "title": "LoRA加载器（仅模型）",
       "cnr_id": "comfy-core",
       "ver": "0.24.0"
     }
   },
-  "263": {
+  "18": {
     "inputs": {
+      "scheduler": "simple",
+      "steps": 8,
+      "denoise": 1,
+      "model": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "基本调度器",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "19": {
+    "inputs": {
+      "add_noise": true,
+      "noise_seed": 666,
+      "cfg": 1,
+      "model": [
+        "95",
+        0
+      ],
+      "positive": [
+        "114",
+        0
+      ],
+      "negative": [
+        "114",
+        1
+      ],
+      "sampler": [
+        "27",
+        0
+      ],
+      "sigmas": [
+        "18",
+        0
+      ],
+      "latent_image": [
+        "114",
+        2
+      ]
+    },
+    "class_type": "SamplerCustom",
+    "_meta": {
+      "title": "自定义采样器",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "27": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "K采样器选择",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "33": {
+    "inputs": {
+      "video": "2.mp4",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 0,
+      "skip_first_frames": 0,
+      "select_every_nth": 1,
+      "format": "AnimateDiff"
+    },
+    "class_type": "VHS_LoadVideo",
+    "_meta": {
+      "title": "Load Video (Upload) 🎥🅥🅗🅢",
+      "cnr_id": "comfyui-videohelpersuite",
+      "ver": "449839959f0153fb8a57211a9364c55163935ca9"
+    }
+  },
+  "63": {
+    "inputs": {
+      "add_noise": true,
+      "noise_seed": 0,
+      "cfg": 1,
+      "model": [
+        "95",
+        0
+      ],
+      "positive": [
+        "115",
+        0
+      ],
+      "negative": [
+        "115",
+        1
+      ],
+      "sampler": [
+        "27",
+        0
+      ],
+      "sigmas": [
+        "18",
+        0
+      ],
+      "latent_image": [
+        "115",
+        2
+      ]
+    },
+    "class_type": "SamplerCustom",
+    "_meta": {
+      "title": "自定义采样器",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "66": {
+    "inputs": {
+      "samples": [
+        "63",
+        1
+      ],
+      "vae": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "72": {
+    "inputs": {
+      "inputcount": 2,
+      "direction": "right",
+      "match_image_size": true,
+      "Update inputs": null,
+      "image_1": [
+        "153",
+        0
+      ],
+      "image_2": [
+        "234",
+        0
+      ]
+    },
+    "class_type": "ImageConcatMulti",
+    "_meta": {
+      "title": "Image Concatenate Multi"
+    }
+  },
+  "73": {
+    "inputs": {
+      "start_index": 5,
+      "num_frames": 4096,
+      "images": [
+        "66",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "74": {
+    "inputs": {
+      "model_name": "wan2.1_14B_SCAIL_2_int8_convrot.safetensors",
+      "weight_dtype": "default",
+      "compute_dtype": "default",
+      "patch_cublaslinear": false,
+      "sage_attention": "auto",
+      "enable_fp16_accumulation": true
+    },
+    "class_type": "DiffusionModelLoaderKJ",
+    "_meta": {
+      "title": "Diffusion Model Loader KJ"
+    }
+  },
+  "75": {
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "加载CLIP视觉",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "76": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "75",
+        0
+      ],
       "image": [
-        "215",
+        "204",
         0
       ]
     },
-    "class_type": "GetImageSize",
+    "class_type": "CLIPVisionEncode",
     "_meta": {
-      "title": "获取图像尺寸",
+      "title": "CLIP视觉编码",
       "cnr_id": "comfy-core",
       "ver": "0.24.0"
     }
   },
-  "264": {
+  "85": {
     "inputs": {
-      "expression": "ceil(a / (81 - 5))",
-      "values.a": [
-        "263",
-        2
-      ]
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "265": {
-    "inputs": {
-      "source": [
-        "264",
-        1
-      ]
-    },
-    "class_type": "PreviewAny",
-    "_meta": {
-      "title": "Preview as Text ()",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "269": {
-    "inputs": {
-      "images.image0": [
-        "213:6",
-        0
-      ],
-      "images.image1": [
-        "262:252",
-        0
-      ]
-    },
-    "class_type": "BatchImagesNode",
-    "_meta": {
-      "title": "批量图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "270": {
-    "inputs": {
-      "fps": [
-        "215",
-        2
-      ],
-      "bit_depth": 8,
-      "color_space": "sRGB",
-      "codec": "none",
+      "detection_threshold": 0.5,
+      "max_objects": 2,
+      "detect_interval": 2,
       "images": [
-        "269",
+        "89",
         0
       ],
-      "audio": [
-        "215",
-        1
+      "model": [
+        "86",
+        0
+      ],
+      "conditioning": [
+        "275",
+        0
       ]
     },
-    "class_type": "CreateVideo",
+    "class_type": "SAM3_VideoTrack",
     "_meta": {
-      "title": "创建视频",
+      "title": "SAM3 视频跟踪",
       "cnr_id": "comfy-core",
       "ver": "0.24.0"
     }
   },
-  "271": {
+  "86": {
     "inputs": {
-      "filename_prefix": "video/SCAIL2",
-      "format": "auto",
-      "format.codec": "auto",
-      "codec": "auto",
-      "video": [
+      "ckpt_name": "sam3.1_multiplex_fp16.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Checkpoint加载器（简易）",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "87": {
+    "inputs": {
+      "text": "person",
+      "clip": [
+        "86",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "89": {
+    "inputs": {
+      "width": [
+        "full_width",
+        1
+      ],
+      "height": [
+        "full_height",
+        1
+      ],
+      "upscale_method": "lanczos",
+      "keep_proportion": "crop",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 16,
+      "device": "cpu",
+      "image": [
+        "33",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "91": {
+    "inputs": {
+      "detection_threshold": 0.5,
+      "max_objects": 2,
+      "detect_interval": 2,
+      "images": [
+        "292",
+        0
+      ],
+      "model": [
+        "86",
+        0
+      ],
+      "conditioning": [
+        "87",
+        0
+      ]
+    },
+    "class_type": "SAM3_VideoTrack",
+    "_meta": {
+      "title": "SAM3 视频跟踪",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "95": {
+    "inputs": {
+      "shift": 5,
+      "model": [
+        "283",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "采样算法（SD3）",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "104": {
+    "inputs": {
+      "object_indices": "",
+      "sort_by": "left_to_right",
+      "replacement_mode": true,
+      "driving_track_data": [
+        "85",
+        0
+      ],
+      "ref_track_data": [
+        "91",
+        0
+      ]
+    },
+    "class_type": "SCAIL2ColoredMask",
+    "_meta": {
+      "title": "创建 SCAIL-2 彩色掩码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "114": {
+    "inputs": {
+      "width": [
+        "89",
+        1
+      ],
+      "height": [
+        "89",
+        2
+      ],
+      "length": [
+        "252",
+        0
+      ],
+      "batch_size": 1,
+      "pose_strength": 1,
+      "pose_start": 0,
+      "pose_end": 1,
+      "video_frame_offset": 0,
+      "previous_frame_count": 5,
+      "replacement_mode": true,
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "4",
+        0
+      ],
+      "vae": [
+        "7",
+        0
+      ],
+      "pose_video": [
+        "89",
+        0
+      ],
+      "pose_video_mask": [
+        "104",
+        0
+      ],
+      "reference_image": [
+        "270",
+        0
+      ],
+      "reference_image_mask": [
+        "104",
+        1
+      ],
+      "clip_vision_output": [
+        "76",
+        0
+      ]
+    },
+    "class_type": "WanSCAILToVideo",
+    "_meta": {
+      "title": "WanSCAILToVideo",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "115": {
+    "inputs": {
+      "width": [
+        "89",
+        1
+      ],
+      "height": [
+        "89",
+        2
+      ],
+      "length": [
+        "252",
+        0
+      ],
+      "batch_size": 1,
+      "pose_strength": 1,
+      "pose_start": 0,
+      "pose_end": 1,
+      "video_frame_offset": [
+        "233",
+        3
+      ],
+      "previous_frame_count": 5,
+      "replacement_mode": false,
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "4",
+        0
+      ],
+      "vae": [
+        "7",
+        0
+      ],
+      "pose_video": [
+        "89",
+        0
+      ],
+      "pose_video_mask": [
+        "104",
+        0
+      ],
+      "reference_image": [
+        "270",
+        0
+      ],
+      "reference_image_mask": [
+        "104",
+        1
+      ],
+      "clip_vision_output": [
+        "76",
+        0
+      ],
+      "previous_frames": [
+        "233",
+        2
+      ]
+    },
+    "class_type": "WanSCAILToVideo",
+    "_meta": {
+      "title": "WanSCAILToVideo",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "153": {
+    "inputs": {
+      "inputcount": 2,
+      "direction": "down",
+      "match_image_size": true,
+      "Update inputs": null,
+      "image_1": [
+        "89",
+        0
+      ],
+      "image_2": [
         "270",
         0
       ]
     },
-    "class_type": "SaveVideo",
+    "class_type": "ImageConcatMulti",
     "_meta": {
-      "title": "Save Video (Final output)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Image Concatenate Multi"
     }
   },
-  "213:11": {
+  "204": {
     "inputs": {
-      "lora_name": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
-      "strength_model": 0.8,
-      "model": [
-        "213:318",
+      "rem_mode": "BEN2",
+      "image_output": "Preview",
+      "save_prefix": "ComfyUI",
+      "torchscript_jit": false,
+      "add_background": "black",
+      "refine_foreground": false,
+      "images": [
+        "292",
         0
       ]
     },
-    "class_type": "LoraLoaderModelOnly",
+    "class_type": "easy imageRemBg",
     "_meta": {
-      "title": "LoRA加载器（仅模型）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "图像背景移除",
+      "cnr_id": "comfyui-easy-use",
+      "ver": "d60b61d5759b020eff3356b3d395a1adb5456869"
     }
   },
-  "213:7": {
+  "233": {
     "inputs": {
-      "vae_name": "Wan2_1_VAE_bf16.safetensors"
+      "total": [
+        "238",
+        0
+      ],
+      "initial_value1": [
+        "6",
+        0
+      ],
+      "initial_value2": [
+        "114",
+        3
+      ]
     },
-    "class_type": "VAELoader",
+    "class_type": "easy forLoopStart",
     "_meta": {
-      "title": "加载VAE",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "For循环-开始"
     }
   },
-  "213:156": {
+  "234": {
     "inputs": {
-      "resize_type": "scale dimensions",
-      "resize_type.width": [
-        "213:180",
-        1
+      "flow": [
+        "233",
+        0
       ],
-      "resize_type.height": [
-        "213:182",
-        1
+      "initial_value1": [
+        "235",
+        0
       ],
-      "resize_type.crop": "center",
-      "scale_method": "area",
-      "input": [
-        "213:177",
+      "initial_value2": [
+        "115",
+        3
+      ]
+    },
+    "class_type": "easy forLoopEnd",
+    "_meta": {
+      "title": "For循环-结束"
+    }
+  },
+  "235": {
+    "inputs": {
+      "any_1": [
+        "233",
+        2
+      ],
+      "any_2": [
+        "73",
         0
       ]
     },
-    "class_type": "ResizeImageMaskNode",
+    "class_type": "easy batchAnything",
     "_meta": {
-      "title": "调整图像/掩码大小",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "任何批次组合"
     }
   },
-  "213:157": {
+  "236": {
     "inputs": {
-      "video": [
-        "155",
-        0
-      ]
-    },
-    "class_type": "GetVideoComponents",
-    "_meta": {
-      "title": "获取视频元素",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:163": {
-    "inputs": {
-      "image": [
-        "213:156",
-        0
-      ]
-    },
-    "class_type": "GetImageSize",
-    "_meta": {
-      "title": "获取图像尺寸",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:9": {
-    "inputs": {
-      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-      "type": "wan",
-      "device": "default"
-    },
-    "class_type": "CLIPLoader",
-    "_meta": {
-      "title": "加载CLIP",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:75": {
-    "inputs": {
-      "clip_name": "clip_vision_h.safetensors"
-    },
-    "class_type": "CLIPVisionLoader",
-    "_meta": {
-      "title": "加载CLIP视觉",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:154": {
-    "inputs": {
-      "unet_name": "wan2.1_14B_SCAIL_2_int8_convrot.safetensors",
-      "weight_dtype": "default"
-    },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "UNet加载器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:95": {
-    "inputs": {
-      "shift": 5,
-      "model": [
-        "213:169",
-        0
-      ]
-    },
-    "class_type": "ModelSamplingSD3",
-    "_meta": {
-      "title": "采样算法（SD3）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:27": {
-    "inputs": {
-      "sampler_name": "euler"
-    },
-    "class_type": "KSamplerSelect",
-    "_meta": {
-      "title": "K采样器选择",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:18": {
-    "inputs": {
-      "scheduler": "simple",
-      "steps": [
-        "213:170",
+      "frame_rate": [
+        "239",
         0
       ],
-      "denoise": 1,
-      "model": [
-        "213:11",
-        0
-      ]
-    },
-    "class_type": "BasicScheduler",
-    "_meta": {
-      "title": "基本调度器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:19": {
-    "inputs": {
-      "add_noise": true,
-      "noise_seed": 1,
-      "cfg": [
-        "213:171",
+      "loop_count": 0,
+      "filename_prefix": "WY-SCAIL2",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "6",
         0
       ],
-      "model": [
-        "213:95",
-        0
-      ],
-      "positive": [
-        "213:114",
-        0
-      ],
-      "negative": [
-        "213:114",
-        1
-      ],
-      "sampler": [
-        "213:27",
-        0
-      ],
-      "sigmas": [
-        "213:18",
-        0
-      ],
-      "latent_image": [
-        "213:114",
+      "audio": [
+        "33",
         2
       ]
     },
-    "class_type": "SamplerCustom",
+    "class_type": "VHS_VideoCombine",
     "_meta": {
-      "title": "自定义采样器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Video Combine 🎥🅥🅗🅢",
+      "cnr_id": "comfyui-videohelpersuite",
+      "ver": "449839959f0153fb8a57211a9364c55163935ca9"
     }
   },
-  "213:168": {
+  "238": {
     "inputs": {
-      "value": 6
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:167": {
-    "inputs": {
-      "value": 1
-    },
-    "class_type": "PrimitiveFloat",
-    "_meta": {
-      "title": "Float (CFG)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:165": {
-    "inputs": {
-      "value": 40
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:166": {
-    "inputs": {
-      "value": 5
-    },
-    "class_type": "PrimitiveFloat",
-    "_meta": {
-      "title": "Float (CFG)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:169": {
-    "inputs": {
-      "switch": [
-        "213:172",
-        0
-      ],
-      "on_false": [
-        "213:318",
-        0
-      ],
-      "on_true": [
-        "213:11",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Model)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:170": {
-    "inputs": {
-      "switch": [
-        "213:172",
-        0
-      ],
-      "on_false": [
-        "213:165",
-        0
-      ],
-      "on_true": [
-        "213:168",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:171": {
-    "inputs": {
-      "switch": [
-        "213:172",
-        0
-      ],
-      "on_false": [
-        "213:166",
-        0
-      ],
-      "on_true": [
-        "213:167",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:177": {
-    "inputs": {
-      "batch_index": [
-        "213:184",
+      "expression": "ceil(a/b)-1",
+      "a": [
+        "239",
         1
       ],
-      "length": 81,
-      "image": [
-        "213:157",
+      "b": [
+        "252",
         0
       ]
     },
-    "class_type": "ImageFromBatch",
+    "class_type": "MathExpression|pysssss",
     "_meta": {
-      "title": "从批次获取图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Math Expression 🐍",
+      "cnr_id": "comfyui-custom-scripts",
+      "ver": "1.2.5"
     }
   },
-  "213:178": {
+  "239": {
     "inputs": {
-      "value": 896
+      "video_info": [
+        "33",
+        3
+      ]
     },
-    "class_type": "PrimitiveInt",
+    "class_type": "VHS_VideoInfoLoaded",
     "_meta": {
-      "title": "Int (Width)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Video Info (Loaded) 🎥🅥🅗🅢",
+      "cnr_id": "comfyui-videohelpersuite",
+      "ver": "a7ce59e381934733bfae03b1be029756d6ce936d"
     }
   },
-  "213:179": {
+  "240": {
+    "inputs": {
+      "value": 24
+    },
+    "class_type": "Int",
+    "_meta": {
+      "title": "Int",
+      "cnr_id": "ComfyLiterals",
+      "ver": "bdddb08ca82d90d75d97b1d437a652e0284a32ac"
+    }
+  },
+  "247": {
+    "inputs": {
+      "value": 20
+    },
+    "class_type": "Int",
+    "_meta": {
+      "title": "Int",
+      "cnr_id": "ComfyLiterals",
+      "ver": "bdddb08ca82d90d75d97b1d437a652e0284a32ac"
+    }
+  },
+  "248": {
     "inputs": {
       "value": 512
     },
-    "class_type": "PrimitiveInt",
+    "class_type": "Int",
     "_meta": {
-      "title": "Int (Height)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Int",
+      "cnr_id": "ComfyLiterals",
+      "ver": "bdddb08ca82d90d75d97b1d437a652e0284a32ac"
     }
   },
-  "213:180": {
-    "inputs": {
-      "expression": "max(32, (a * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
-      "values.a": [
-        "263",
-        0
-      ],
-      "values.b": [
-        "263",
-        1
-      ]
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:182": {
-    "inputs": {
-      "expression": "max(32, (b * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
-      "values.a": [
-        "263",
-        0
-      ],
-      "values.b": [
-        "263",
-        1
-      ]
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:183": {
-    "inputs": {
-      "value": 1
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (segment index)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:184": {
-    "inputs": {
-      "expression": "(b - c) * (a - 1)",
-      "values.a": [
-        "213:183",
-        0
-      ],
-      "values.b": 81,
-      "values.c": 5
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:191": {
-    "inputs": {
-      "text": "girl, handkerchief",
-      "clip": [
-        "213:193",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "213:193": {
-    "inputs": {
-      "ckpt_name": "sam3.1_multiplex_fp16.safetensors"
-    },
-    "class_type": "CheckpointLoaderSimple",
-    "_meta": {
-      "title": "Checkpoint加载器（简易）",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "213:196": {
-    "inputs": {
-      "detection_threshold": 0.5,
-      "max_objects": 4,
-      "detect_interval": 1,
-      "images": [
-        "213:156",
-        0
-      ],
-      "model": [
-        "213:193",
-        0
-      ],
-      "conditioning": [
-        "213:191",
-        0
-      ]
-    },
-    "class_type": "SAM3_VideoTrack",
-    "_meta": {
-      "title": "SAM3 视频跟踪",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:197": {
-    "inputs": {
-      "object_indices": "",
-      "sort_by": "left_to_right",
-      "replacement_mode": [
-        "213:203",
-        0
-      ],
-      "driving_track_data": [
-        "213:196",
-        0
-      ],
-      "ref_track_data": [
-        "213:198",
-        0
-      ]
-    },
-    "class_type": "SCAIL2ColoredMask",
-    "_meta": {
-      "title": "创建 SCAIL-2 彩色掩码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:198": {
-    "inputs": {
-      "detection_threshold": 0.5,
-      "max_objects": 4,
-      "detect_interval": 1,
-      "images": [
-        "30",
-        0
-      ],
-      "model": [
-        "213:193",
-        0
-      ],
-      "conditioning": [
-        "213:212",
-        0
-      ]
-    },
-    "class_type": "SAM3_VideoTrack",
-    "_meta": {
-      "title": "SAM3 视频跟踪",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:203": {
-    "inputs": {
-      "value": true
-    },
-    "class_type": "PrimitiveBoolean",
-    "_meta": {
-      "title": "Boolean （Replace Mode）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:6": {
-    "inputs": {
-      "samples": [
-        "213:19",
-        1
-      ],
-      "vae": [
-        "213:7",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE解码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:172": {
-    "inputs": {
-      "value": true
-    },
-    "class_type": "PrimitiveBoolean",
-    "_meta": {
-      "title": "Boolean (Enable Distill LoRA?)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:76": {
-    "inputs": {
-      "crop": "none",
-      "clip_vision": [
-        "213:75",
-        0
-      ],
-      "image": [
-        "30",
-        0
-      ]
-    },
-    "class_type": "CLIPVisionEncode",
-    "_meta": {
-      "title": "CLIP视觉编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:4": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "213:9",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:3": {
-    "inputs": {
-      "text": "A young East Asian woman with dark hair neatly pulled back, wearing a white sleeveless ribbed mock-neck top, is standing in a lush apple orchard. She holds a large glossy red apple with both hands, using a white paper handkerchief to wipe and clean the apple before smelling and eating it with her eyes closed and a blissful expression. Ripe red and yellow apples hang from leafy branches in the foreground, with rows of green apple trees softly blurred in the background under natural daylight.",
-      "clip": [
-        "213:9",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:114": {
-    "inputs": {
-      "width": [
-        "213:163",
-        0
-      ],
-      "height": [
-        "213:163",
-        1
-      ],
-      "length": [
-        "213:163",
-        2
-      ],
-      "batch_size": 1,
-      "pose_strength": 1,
-      "pose_start": 0,
-      "pose_end": 1,
-      "video_frame_offset": 0,
-      "previous_frame_count": 5,
-      "replacement_mode": [
-        "213:203",
-        0
-      ],
-      "positive": [
-        "213:3",
-        0
-      ],
-      "negative": [
-        "213:4",
-        0
-      ],
-      "vae": [
-        "213:7",
-        0
-      ],
-      "pose_video": [
-        "213:156",
-        0
-      ],
-      "pose_video_mask": [
-        "213:197",
-        0
-      ],
-      "reference_image": [
-        "30",
-        0
-      ],
-      "reference_image_mask": [
-        "213:197",
-        1
-      ],
-      "clip_vision_output": [
-        "213:76",
-        0
-      ]
-    },
-    "class_type": "WanSCAILToVideo",
-    "_meta": {
-      "title": "WanSCAILToVideo",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "213:212": {
-    "inputs": {
-      "text": "human",
-      "clip": [
-        "213:193",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "213:318": {
-    "inputs": {
-      "lora_name": "wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
-      "strength_model": 1,
-      "model": [
-        "213:154",
-        0
-      ]
-    },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": {
-      "title": "LoRA加载器（仅模型）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:216": {
-    "inputs": {
-      "lora_name": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
-      "strength_model": 0.8,
-      "model": [
-        "262:319",
-        0
-      ]
-    },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": {
-      "title": "LoRA加载器（仅模型）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:217": {
-    "inputs": {
-      "vae_name": "Wan2_1_VAE_bf16.safetensors"
-    },
-    "class_type": "VAELoader",
-    "_meta": {
-      "title": "加载VAE",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:218": {
-    "inputs": {
-      "resize_type": "scale dimensions",
-      "resize_type.width": [
-        "262:238",
-        1
-      ],
-      "resize_type.height": [
-        "262:239",
-        1
-      ],
-      "resize_type.crop": "center",
-      "scale_method": "area",
-      "input": [
-        "262:235",
-        0
-      ]
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "调整图像/掩码大小",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:219": {
-    "inputs": {
-      "video": [
-        "155",
-        0
-      ]
-    },
-    "class_type": "GetVideoComponents",
-    "_meta": {
-      "title": "获取视频元素",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:220": {
-    "inputs": {
-      "image": [
-        "262:218",
-        0
-      ]
-    },
-    "class_type": "GetImageSize",
-    "_meta": {
-      "title": "获取图像尺寸",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:221": {
-    "inputs": {
-      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-      "type": "wan",
-      "device": "default"
-    },
-    "class_type": "CLIPLoader",
-    "_meta": {
-      "title": "加载CLIP",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:222": {
-    "inputs": {
-      "clip_name": "clip_vision_h.safetensors"
-    },
-    "class_type": "CLIPVisionLoader",
-    "_meta": {
-      "title": "加载CLIP视觉",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:223": {
-    "inputs": {
-      "unet_name": "wan2.1_14B_SCAIL_2_int8_convrot.safetensors",
-      "weight_dtype": "default"
-    },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "UNet加载器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:224": {
-    "inputs": {
-      "shift": 5,
-      "model": [
-        "262:232",
-        0
-      ]
-    },
-    "class_type": "ModelSamplingSD3",
-    "_meta": {
-      "title": "采样算法（SD3）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:225": {
-    "inputs": {
-      "sampler_name": "euler"
-    },
-    "class_type": "KSamplerSelect",
-    "_meta": {
-      "title": "K采样器选择",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:226": {
-    "inputs": {
-      "scheduler": "simple",
-      "steps": [
-        "262:233",
-        0
-      ],
-      "denoise": 1,
-      "model": [
-        "262:216",
-        0
-      ]
-    },
-    "class_type": "BasicScheduler",
-    "_meta": {
-      "title": "基本调度器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:227": {
-    "inputs": {
-      "add_noise": true,
-      "noise_seed": 1,
-      "cfg": [
-        "262:234",
-        0
-      ],
-      "model": [
-        "262:224",
-        0
-      ],
-      "positive": [
-        "262:259",
-        0
-      ],
-      "negative": [
-        "262:259",
-        1
-      ],
-      "sampler": [
-        "262:225",
-        0
-      ],
-      "sigmas": [
-        "262:226",
-        0
-      ],
-      "latent_image": [
-        "262:259",
-        2
-      ]
-    },
-    "class_type": "SamplerCustom",
-    "_meta": {
-      "title": "自定义采样器",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:228": {
-    "inputs": {
-      "value": 6
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:229": {
-    "inputs": {
-      "value": 1
-    },
-    "class_type": "PrimitiveFloat",
-    "_meta": {
-      "title": "Float (CFG)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:230": {
-    "inputs": {
-      "value": 40
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:231": {
-    "inputs": {
-      "value": 5
-    },
-    "class_type": "PrimitiveFloat",
-    "_meta": {
-      "title": "Float (CFG)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:232": {
-    "inputs": {
-      "switch": [
-        "262:255",
-        0
-      ],
-      "on_false": [
-        "262:319",
-        0
-      ],
-      "on_true": [
-        "262:216",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Model)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:233": {
-    "inputs": {
-      "switch": [
-        "262:255",
-        0
-      ],
-      "on_false": [
-        "262:230",
-        0
-      ],
-      "on_true": [
-        "262:228",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:234": {
-    "inputs": {
-      "switch": [
-        "262:255",
-        0
-      ],
-      "on_false": [
-        "262:231",
-        0
-      ],
-      "on_true": [
-        "262:229",
-        0
-      ]
-    },
-    "class_type": "ComfySwitchNode",
-    "_meta": {
-      "title": "Switch (Steps)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:235": {
-    "inputs": {
-      "batch_index": [
-        "262:241",
-        1
-      ],
-      "length": 81,
-      "image": [
-        "262:219",
-        0
-      ]
-    },
-    "class_type": "ImageFromBatch",
-    "_meta": {
-      "title": "从批次获取图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:236": {
+  "249": {
     "inputs": {
       "value": 896
     },
-    "class_type": "PrimitiveInt",
+    "class_type": "Int",
     "_meta": {
-      "title": "Int (Width)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
+      "title": "Int",
+      "cnr_id": "ComfyLiterals",
+      "ver": "bdddb08ca82d90d75d97b1d437a652e0284a32ac"
     }
   },
-  "262:237": {
+  "252": {
     "inputs": {
-      "value": 512
+      "value": 81
     },
-    "class_type": "PrimitiveInt",
+    "class_type": "Int",
     "_meta": {
-      "title": "Int (Height)",
+      "title": "Int",
+      "cnr_id": "ComfyLiterals",
+      "ver": "bdddb08ca82d90d75d97b1d437a652e0284a32ac"
+    }
+  },
+  "270": {
+    "inputs": {
+      "cond": [
+        "271",
+        0
+      ],
+      "tt_value": [
+        "204",
+        0
+      ],
+      "ff_value": [
+        "292",
+        0
+      ]
+    },
+    "class_type": "ImpactConditionalBranch",
+    "_meta": {
+      "title": "ImpactConditionalBranch",
+      "cnr_id": "comfyui-impact-pack",
+      "ver": "8.22.2"
+    }
+  },
+  "271": {
+    "inputs": {
+      "value": true
+    },
+    "class_type": "PrimitiveBoolean",
+    "_meta": {
+      "title": "布尔值",
       "cnr_id": "comfy-core",
       "ver": "0.24.0"
     }
   },
-  "262:238": {
+  "275": {
+    "inputs": {
+      "text": "person",
+      "clip": [
+        "86",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码",
+      "cnr_id": "comfy-core",
+      "ver": "0.24.0"
+    }
+  },
+  "283": {
+    "inputs": {
+      "sage_attention": "auto",
+      "allow_compile": false,
+      "model": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "PathchSageAttentionKJ",
+    "_meta": {
+      "title": "Patch Sage Attention KJ",
+      "cnr_id": "comfyui-kjnodes",
+      "ver": "ab8cac5396db7caffb3e73ca171a3684c8daea2d"
+    }
+  },
+  "284": {
+    "inputs": {
+      "value": "a*b+1",
+      "a": [
+        "247",
+        0
+      ],
+      "b": [
+        "240",
+        0
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "🔧 Simple Math"
+    }
+  },
+  "291": {
+    "inputs": {
+      "use_custom_resolution": true,
+      "resolution": "512x896 (4:7) (竖屏)",
+      "custom_width": [
+        "248",
+        0
+      ],
+      "custom_height": [
+        "249",
+        0
+      ]
+    },
+    "class_type": "TTResolutionSelector",
+    "_meta": {
+      "title": "TT分辨率选择器"
+    }
+  },
+  "292": {
+    "inputs": {
+      "image": "2.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "full_size": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": [
+        "33",
+        0
+      ]
+    }
+  },
+  "full_width": {
+    "class_type": "ComfyMathExpression",
     "inputs": {
       "expression": "max(32, (a * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "263",
+        "full_size",
         0
       ],
       "values.b": [
-        "263",
+        "full_size",
         1
       ]
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
     }
   },
-  "262:239": {
+  "full_height": {
+    "class_type": "ComfyMathExpression",
     "inputs": {
       "expression": "max(32, (b * min(896 / max(a, b), 512 / min(a, b)) // 32) * 32)",
       "values.a": [
-        "263",
+        "full_size",
         0
       ],
       "values.b": [
-        "263",
+        "full_size",
         1
       ]
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:240": {
-    "inputs": {
-      "value": 2
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int (segment index)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:241": {
-    "inputs": {
-      "expression": "(b - c) * (a - 1)",
-      "values.a": [
-        "262:240",
-        0
-      ],
-      "values.b": 81,
-      "values.c": 5
-    },
-    "class_type": "ComfyMathExpression",
-    "_meta": {
-      "title": "数学表达式",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:242": {
-    "inputs": {
-      "text": "girl, handkerchief",
-      "clip": [
-        "262:243",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "262:243": {
-    "inputs": {
-      "ckpt_name": "sam3.1_multiplex_fp16.safetensors"
-    },
-    "class_type": "CheckpointLoaderSimple",
-    "_meta": {
-      "title": "Checkpoint加载器（简易）",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "262:244": {
-    "inputs": {
-      "detection_threshold": 0.5,
-      "max_objects": 4,
-      "detect_interval": 1,
-      "images": [
-        "262:218",
-        0
-      ],
-      "model": [
-        "262:243",
-        0
-      ],
-      "conditioning": [
-        "262:242",
-        0
-      ]
-    },
-    "class_type": "SAM3_VideoTrack",
-    "_meta": {
-      "title": "SAM3 视频跟踪",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:245": {
-    "inputs": {
-      "object_indices": "",
-      "sort_by": "left_to_right",
-      "replacement_mode": [
-        "262:247",
-        0
-      ],
-      "driving_track_data": [
-        "262:244",
-        0
-      ],
-      "ref_track_data": [
-        "262:246",
-        0
-      ]
-    },
-    "class_type": "SCAIL2ColoredMask",
-    "_meta": {
-      "title": "创建 SCAIL-2 彩色掩码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:246": {
-    "inputs": {
-      "detection_threshold": 0.5,
-      "max_objects": 4,
-      "detect_interval": 1,
-      "images": [
-        "30",
-        0
-      ],
-      "model": [
-        "262:243",
-        0
-      ],
-      "conditioning": [
-        "262:261",
-        0
-      ]
-    },
-    "class_type": "SAM3_VideoTrack",
-    "_meta": {
-      "title": "SAM3 视频跟踪",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:247": {
-    "inputs": {
-      "value": true
-    },
-    "class_type": "PrimitiveBoolean",
-    "_meta": {
-      "title": "Boolean （Replace Mode）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:250": {
-    "inputs": {
-      "samples": [
-        "262:227",
-        1
-      ],
-      "vae": [
-        "262:217",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE解码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:251": {
-    "inputs": {
-      "batch_index": 5,
-      "length": 4096,
-      "image": [
-        "262:250",
-        0
-      ]
-    },
-    "class_type": "ImageFromBatch",
-    "_meta": {
-      "title": "从批次获取图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:252": {
-    "inputs": {
-      "method": "reinhard_lab",
-      "source_stats": "per_frame",
-      "strength": 1,
-      "image_target": [
-        "262:251",
-        0
-      ],
-      "image_ref": [
-        "262:253",
-        0
-      ]
-    },
-    "class_type": "ColorTransfer",
-    "_meta": {
-      "title": "ColorTransfer",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:253": {
-    "inputs": {
-      "batch_index": -1,
-      "length": 1,
-      "image": [
-        "213:6",
-        0
-      ]
-    },
-    "class_type": "ImageFromBatch",
-    "_meta": {
-      "title": "从批次获取图像",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:255": {
-    "inputs": {
-      "value": true
-    },
-    "class_type": "PrimitiveBoolean",
-    "_meta": {
-      "title": "Boolean (Enable Distill LoRA?)",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:256": {
-    "inputs": {
-      "crop": "none",
-      "clip_vision": [
-        "262:222",
-        0
-      ],
-      "image": [
-        "30",
-        0
-      ]
-    },
-    "class_type": "CLIPVisionEncode",
-    "_meta": {
-      "title": "CLIP视觉编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:257": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "262:221",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:258": {
-    "inputs": {
-      "text": "A young East Asian woman with dark hair neatly pulled back, wearing a white sleeveless ribbed mock-neck top, is standing in a lush apple orchard. She holds a large glossy red apple with both hands, using a white paper handkerchief to wipe and clean the apple before smelling and eating it with her eyes closed and a blissful expression. Ripe red and yellow apples hang from leafy branches in the foreground, with rows of green apple trees softly blurred in the background under natural daylight.",
-      "clip": [
-        "262:221",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:259": {
-    "inputs": {
-      "width": [
-        "262:220",
-        0
-      ],
-      "height": [
-        "262:220",
-        1
-      ],
-      "length": [
-        "262:220",
-        2
-      ],
-      "batch_size": 1,
-      "pose_strength": 1,
-      "pose_start": 0,
-      "pose_end": 1,
-      "video_frame_offset": 0,
-      "previous_frame_count": 5,
-      "replacement_mode": [
-        "262:247",
-        0
-      ],
-      "positive": [
-        "262:258",
-        0
-      ],
-      "negative": [
-        "262:257",
-        0
-      ],
-      "vae": [
-        "262:217",
-        0
-      ],
-      "pose_video": [
-        "262:218",
-        0
-      ],
-      "pose_video_mask": [
-        "262:245",
-        0
-      ],
-      "reference_image": [
-        "30",
-        0
-      ],
-      "reference_image_mask": [
-        "262:245",
-        1
-      ],
-      "clip_vision_output": [
-        "262:256",
-        0
-      ],
-      "previous_frames": [
-        "213:6",
-        0
-      ]
-    },
-    "class_type": "WanSCAILToVideo",
-    "_meta": {
-      "title": "WanSCAILToVideo",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
-    }
-  },
-  "262:261": {
-    "inputs": {
-      "text": "human",
-      "clip": [
-        "262:243",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码",
-      "cnr_id": "comfy-core",
-      "ver": "0.19.3"
-    }
-  },
-  "262:319": {
-    "inputs": {
-      "lora_name": "wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
-      "strength_model": 1,
-      "model": [
-        "262:223",
-        0
-      ]
-    },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": {
-      "title": "LoRA加载器（仅模型）",
-      "cnr_id": "comfy-core",
-      "ver": "0.24.0"
     }
   }
 }

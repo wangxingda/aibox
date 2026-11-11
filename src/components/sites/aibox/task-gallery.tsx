@@ -38,12 +38,12 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
   const hiddenTasks = useRef(new Set<string>());
 
   const deleteTask = async (task: BackendTask) => {
-    if (!window.confirm("确定删除这个作品吗？删除后将无法在作品列表中查看。")) return;
+    if (!window.confirm(activeStatuses.has(task.status) ? "确定取消并删除这个任务吗？" : "确定删除这个作品吗？删除后将无法在作品列表中查看。")) return;
     setDeleting(task.id);
     hiddenTasks.current.add(task.id);
     setTasks(current => current.filter(item => item.id !== task.id));
     try {
-      await api(`/tasks/${encodeURIComponent(task.id)}`, { method: "DELETE" });
+      await api(`/tasks/${encodeURIComponent(task.id)}${activeStatuses.has(task.status) ? "/cancel" : ""}`, { method: activeStatuses.has(task.status) ? "POST" : "DELETE" });
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 404) return;
       hiddenTasks.current.delete(task.id);
@@ -112,12 +112,13 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
     content = <div className="task-gallery">
       <div className="backend-task-list">
         {tasks.map(task => {
+          const taskName = task.model === "Wan SCAIL2 角色替换" ? "角色替换" : task.model;
           const isActive = activeStatuses.has(task.status);
           const progress = Math.max(0, Math.min(100, task.progress ?? (task.status === "completed" ? 100 : 0)));
           const createdAt = task.created_at ? localTaskTime(task.created_at) : "";
           return <article className={`task-card task-card-${task.kind} task-card-${task.status}`} key={task.id}>
             <header className="task-card-header">
-              <div className="task-card-heading"><b title={task.model}>{task.model}</b><time dateTime={task.created_at}>{createdAt}</time></div>
+              <div className="task-card-heading"><b title={taskName}>{taskName}</b><time dateTime={task.created_at}>{createdAt}</time></div>
               <span className={`task-status task-status-${task.status}`}>{statusLabels[task.status] || task.status}</span>
             </header>
             {task.prompt && <p className="task-card-prompt" title={task.prompt}><span>提示词</span>{task.prompt}</p>}
@@ -134,6 +135,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
               ? <a className="task-card-media task-card-image" href={output.url} target="_blank" rel="noreferrer" key={output.url}><img src={output.url} alt={`生成结果 ${index + 1}`} loading="lazy"  decoding="async"/></a>
               : <video className="task-card-media task-card-video" key={output.url} src={output.url} controls preload="metadata" />)}
             </div>
+            {isActive && <div className="task-card-actions"><button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><X size={16} />{deleting === task.id ? "取消中" : "取消任务"}</button></div>}
             {task.status === "completed" && <div className="task-card-actions">
               <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
               {task.outputs.map((output, index) => <a href={`${output.url}?download=true`} download key={output.url} aria-label={`下载作品 ${index + 1}`}><Download size={16} />下载{task.outputs.length > 1 ? ` ${index + 1}` : ""}</a>)}

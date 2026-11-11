@@ -2,17 +2,21 @@
   "461": {
     "inputs": {
       "filename_prefix": "Qwen_image_2.1",
-      "format": "png",
-      "format.bit_depth": "8-bit",
-      "format.input_color_space": "sRGB",
+      "foldername_prefix": "",
+      "output_format": ".jpg",
+      "quality": 95,
+      "save_image_metadata": true,
+      "metadata_mode": "comfy",
+      "sidecar_mode": "off",
+      "image_preview": true,
       "images": [
         "459:457",
         0
       ]
     },
-    "class_type": "SaveImageAdvanced",
+    "class_type": "SaveImageSimple",
     "_meta": {
-      "title": "保存图像（高级）"
+      "title": "comfyui-save-image-pro (Simple)"
     }
   },
   "470": {

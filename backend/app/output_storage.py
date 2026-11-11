@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from PIL import Image, ImageOps
 
 from .config import settings
 
@@ -29,8 +30,9 @@ def output_path(task_id: str, index: int, item: dict[str, Any]) -> tuple[Path, s
 
 def persist_output(task_id: str, index: int, item: dict[str, Any]) -> tuple[Path, str]:
     path, media_type = output_path(task_id, index, item)
-    if path.is_file() and path.stat().st_size:
-        return path, media_type
+    saved = local_output(task_id, index, item)
+    if saved is not None:
+        return saved
     path.parent.mkdir(parents=True, exist_ok=True)
     cfg = settings()
     headers = {'Authorization': f'Bearer {cfg.comfyui_token}'} if cfg.comfyui_token else {}
@@ -51,6 +53,14 @@ def persist_output(task_id: str, index: int, item: dict[str, Any]) -> tuple[Path
                         out.write(chunk)
                 if temporary.stat().st_size == 0:
                     raise ValueError('Empty generation output')
+                if path.suffix in {'.png', '.webp'}:
+                    with Image.open(temporary) as source:
+                        image = ImageOps.exif_transpose(source).convert('RGBA')
+                        background = Image.new('RGB', image.size, 'white')
+                        background.paste(image, mask=image.getchannel('A'))
+                        background.save(temporary, format='JPEG', quality=90, optimize=True)
+                    path = path.with_suffix('.jpg')
+                    media_type = 'image/jpeg'
                 os.replace(temporary, path)
                 temporary = None
     finally:
@@ -62,4 +72,8 @@ def persist_output(task_id: str, index: int, item: dict[str, Any]) -> tuple[Path
 def local_output(task_id: str, index: int, item: dict[str, Any]) -> tuple[Path, str] | None:
     """Return an already persisted output without fetching legacy files."""
     path, media_type = output_path(task_id, index, item)
+    if path.suffix in {'.png', '.webp', '.jpg', '.jpeg'}:
+        jpeg = path.with_suffix('.jpg')
+        if jpeg.is_file() and jpeg.stat().st_size:
+            return jpeg, 'image/jpeg'
     return (path, media_type) if path.is_file() and path.stat().st_size else None

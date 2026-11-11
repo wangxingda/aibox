@@ -387,6 +387,34 @@ def get_task(task_id: str, user: User = Depends(current_user), session: DBSessio
     cache_task(task)
     return result
 
+@app.post('/api/tasks/{task_id}/cancel')
+def cancel_task(task_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    task = session.scalar(select(Task).where(Task.id == task_id, Task.user_id == user.id).with_for_update())
+    if not task:
+        raise HTTPException(404, '任务不存在')
+    if task.status == 'submitting':
+        raise HTTPException(409, '任务正在提交，请稍后再取消。')
+    if task.status not in ('queued', 'running'):
+        raise HTTPException(409, '任务状态已改变，请刷新后重试。')
+    if task.status == 'running':
+        headers = {'Authorization': f'Bearer {cfg.comfyui_token}'} if cfg.comfyui_token else {}
+        try:
+            response = httpx.post(cfg.comfyui_url.rstrip('/') + '/api/jobs/' + task.comfy_prompt_id + '/cancel', headers=headers, timeout=10)
+            response.raise_for_status()
+            if response.json().get('cancelled') is not True:
+                raise HTTPException(409, '生成服务未确认取消，任务可能已结束，请稍后刷新。')
+        except (httpx.HTTPError, ValueError, TypeError):
+            raise HTTPException(502, '无法确认生成服务已取消任务，请稍后重试。')
+    for table in (TaskInputAsset, TaskOutput, TaskEvent, TaskRequest, TaskWorkflowSnapshot):
+        session.execute(delete(table).where(table.task_id == task_id))
+    session.delete(task)
+    session.commit()
+    try:
+        cache.delete(f'task:{task_id}')
+    except redis.RedisError:
+        pass
+    return {'deleted': True}
+
 @app.delete('/api/tasks/{task_id}')
 def delete_task(task_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
     task = session.scalar(select(Task).where(Task.id == task_id, Task.user_id == user.id).with_for_update())

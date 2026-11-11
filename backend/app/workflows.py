@@ -24,6 +24,29 @@ def extend_driving_video(workflow: dict, model: str, frame_count: int) -> dict:
         raise WorkflowError('驱动视频须包含 1 到 3805 帧')
     count = 1 + max(0, (frame_count - 81 + 75) // 76)
     replacement = model == 'Wan SCAIL2 角色替换'
+    if replacement and '33' in workflow:
+        workflow['full_last'] = {'class_type': 'ImageFromBatch', 'inputs': {'image': ['33', 0], 'batch_index': -1, 'length': 1}}
+        workflow['full_padding'] = {'class_type': 'RepeatImageBatch', 'inputs': {'image': ['full_last', 0], 'amount': 81}}
+        workflow['full_source'] = {'class_type': 'ImageBatch', 'inputs': {'image1': ['33', 0], 'image2': ['full_padding', 0]}}
+        workflow['89']['inputs']['image'] = ['full_source', 0]
+        parts = [['6', 0]]
+        previous_image, previous_offset = '6', '114'
+        for index in range(1, count):
+            prefix = f'full_scail_{index}:'
+            for node in ('115', '63', '66', '73'):
+                workflow[prefix + node] = copy.deepcopy(workflow[node])
+            continuation = workflow[prefix + '115']['inputs']
+            continuation['previous_frames'] = [previous_image, 0]
+            continuation['video_frame_offset'] = [previous_offset, 3]
+            workflow[prefix + '63']['inputs'].update(positive=[prefix + '115', 0], negative=[prefix + '115', 1], latent_image=[prefix + '115', 2])
+            workflow[prefix + '66']['inputs']['samples'] = [prefix + '63', 1]
+            workflow[prefix + '73']['inputs']['images'] = [prefix + '66', 0]
+            parts.append([prefix + '73', 0])
+            previous_image, previous_offset = prefix + '66', prefix + '115'
+        workflow['full_join'] = {'class_type': 'BatchImagesNode', 'inputs': {f'images.image{i}': part for i, part in enumerate(parts)}}
+        workflow['full_crop'] = {'class_type': 'ImageFromBatch', 'inputs': {'image': ['full_join', 0], 'batch_index': 0, 'length': frame_count}}
+        workflow['236']['inputs']['images'] = ['full_crop', 0]
+        return workflow
     source = '215' if replacement else '288'
     # Padding guarantees a full final window; the output is cropped back to the input frame count.
     workflow['full_last'] = {'class_type': 'ImageFromBatch', 'inputs': {'image': [source, 0], 'batch_index': -1, 'length': 1}}
