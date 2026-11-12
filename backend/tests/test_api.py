@@ -772,3 +772,21 @@ def test_template_asset_import_is_restricted_and_owned(client, tmp_path, monkeyp
     client.post('/api/auth/logout')
     register(client, 'other@example.com')
     assert client.get('/api/uploads/' + response.json()['id'] + '/content').status_code == 404
+
+
+def test_retry_directly_creates_one_task_and_charges_once(client):
+    from app import worker
+    register(client)
+    task = client.post('/api/tasks', json={'kind':'image','model':'demo-image','prompt':'keep my prompt'}).json()
+    worker.claim()
+    worker.update(task['id'], 'failed', expected={'submitting'})
+    headers = {'Idempotency-Key':'retry-one'}
+    response = client.post('/api/tasks/' + task['id'] + '/retry', headers=headers)
+    assert response.status_code == 202
+    retried = response.json()
+    assert retried['id'] != task['id'] and retried['prompt'] == task['prompt'] and retried['status'] == 'queued'
+    assert client.post('/api/tasks/' + task['id'] + '/retry', headers=headers).json()['id'] == retried['id']
+    assert client.get('/api/credits').json()['balance'] == 900
+    client.post('/api/auth/logout')
+    register(client, 'retry-other@example.com')
+    assert client.post('/api/tasks/' + task['id'] + '/retry', headers=headers).status_code == 404

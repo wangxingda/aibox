@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PageNotice } from "@/components/sites/aibox/page-notice";
 
 export const metadata: Metadata = {
   title: "AIBox：一站式AI视频与图片生成，释放无限创意",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>{children}<PageNotice/></body>
     </html>
   );
 }

@@ -327,6 +327,13 @@ async def upload_video(file: UploadFile = File(...), user: User = Depends(curren
     finally:
         temporary.unlink(missing_ok=True)
 
+@app.get('/api/uploads/{upload_id}')
+def upload_metadata(upload_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    upload = session.get(Upload, upload_id)
+    if not upload or upload.user_id != user.id:
+        raise HTTPException(404, '素材不存在')
+    return {'id': upload.id, 'content_type': upload.content_type, 'url': f'/api/uploads/{upload.id}/content'}
+
 @app.get('/api/uploads/{upload_id}/content')
 def upload_content(upload_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
     upload = session.get(Upload, upload_id)
@@ -462,6 +469,32 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
         raise
     cache_task(task)
     return serialize(task)
+
+@app.post('/api/tasks/{task_id}/retry', status_code=202)
+def retry_task(task_id: str, user: User = Depends(current_user), session: DBSession = Depends(db), idempotency_key: str | None = Header(default=None, alias='Idempotency-Key')):
+    task = own_task(session, user, task_id)
+    if task.status not in ('failed', 'unknown', 'completed'):
+        raise HTTPException(409, '任务尚未结束，请稍后重试。')
+    if not idempotency_key:
+        raise HTTPException(400, '缺少请求标识，请刷新后重试。')
+    if task.status == 'unknown':
+        try:
+            headers = {'Authorization': f'Bearer {cfg.comfyui_token}'} if cfg.comfyui_token else {}
+            response = httpx.get(cfg.comfyui_url.rstrip('/') + '/history/' + task.comfy_prompt_id, headers=headers, timeout=10)
+            response.raise_for_status()
+            history = response.json().get(task.comfy_prompt_id, {})
+            if history.get('status', {}).get('status_str') != 'error':
+                raise HTTPException(409, '任务结果仍未确认，暂时无法重试，以免重复生成。')
+        except (httpx.HTTPError, ValueError, TypeError):
+            raise HTTPException(409, '暂时无法确认原任务结果，请稍后再试。')
+    if task.status == 'unknown':
+        refund_task(session, task)
+        task.status = 'failed'
+    options = task.options or {}
+    data = TaskInput(kind=task.kind, model=task.model, prompt=task.prompt, upload_id=task.upload_id,
+                     second_upload_id=options.get('second_upload_id'), video_upload_id=options.get('video_upload_id'),
+                     mode=options.get('mode'), quality=options.get('quality', '540P'), ratio=options.get('ratio', '16:9'), duration=options.get('duration', '5s'))
+    return create_task(data, user, session, idempotency_key)
 
 @app.get('/api/tasks')
 def list_tasks(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video'] | None = None):

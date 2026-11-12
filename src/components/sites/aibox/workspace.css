@@ -97,3 +97,5 @@
 .effects-loading{padding:24px;text-align:center;color:#a6b5b7;font-size:13px}
 
 .effects-grid .effects-card-action img{height:auto}
+
+.studio-card-status{position:absolute;right:8px;top:8px;border-radius:6px;padding:5px 8px;background:#102329df;color:#b6eef1;font-size:11px;font-weight:700}

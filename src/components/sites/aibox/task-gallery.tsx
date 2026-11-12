@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { showPageNotice } from "./page-notice";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Download, LoaderCircle, Pencil, Trash2, X } from "lucide-react";
+import { Download, LoaderCircle, Pencil, Trash2, X, RotateCcw } from "lucide-react";
 import { api, ApiError, type BackendTask, type BackendUser } from "@/lib/backend";
 import "./task-gallery.css";
 
@@ -50,9 +51,23 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [submittedNotice, setSubmittedNotice] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const hiddenTasks = useRef(new Set<string>());
+  const retryKeys = useRef(new Map<string,string>());
+  const retryPending = useRef(false);
+  const [retrying, setRetrying] = useState<string | null>(null);
+  const retryTask = async (task: BackendTask) => {
+    if (retryPending.current) return;
+    retryPending.current = true; setRetrying(task.id); setError("");
+    if (!retryKeys.current.has(task.id)) retryKeys.current.set(task.id, crypto.randomUUID());
+    try {
+      const created = await api<BackendTask>(`/tasks/${encodeURIComponent(task.id)}/retry`, {method:"POST", headers:{"Idempotency-Key":retryKeys.current.get(task.id)!}});
+      setTasks(current => [created, ...current.filter(item => item.id !== created.id)]);
+      retryKeys.current.delete(task.id); showPageNotice("任务提交成功", "success");
+      window.dispatchEvent(new Event("aibox:credits-changed"));
+    } catch (cause) { showPageNotice(cause instanceof Error ? cause.message : "重试失败，请稍后再试。"); }
+    finally { retryPending.current = false; setRetrying(null); }
+  };
 
   const deleteTask = async (task: BackendTask) => {
     if (!window.confirm(activeStatuses.has(task.status) ? "确定取消并删除这个任务吗？" : "确定删除这个作品吗？删除后将无法在作品列表中查看。")) return;
@@ -65,21 +80,16 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
       if (cause instanceof ApiError && cause.status === 404) return;
       hiddenTasks.current.delete(task.id);
       setTasks(current => current.some(item => item.id === task.id) ? current : [task, ...current]);
-      setError(cause instanceof Error ? cause.message : "删除失败，请重试。");
+      showPageNotice(cause instanceof Error ? cause.message : "删除失败，请重试。");
     } finally { setDeleting(null); }
   };
 
   useEffect(() => {
     if (window.sessionStorage.getItem("aibox:task-submitted") !== "1") return;
     window.sessionStorage.removeItem("aibox:task-submitted");
-    setSubmittedNotice(true);
+    showPageNotice("任务提交成功", "success");
   }, []);
 
-  useEffect(() => {
-    if (!submittedNotice) return;
-    const timer = window.setTimeout(() => setSubmittedNotice(false), 1500);
-    return () => window.clearTimeout(timer);
-  }, [submittedNotice]);
 
   useEffect(() => {
     if (!user) return;
@@ -101,7 +111,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
         setError("");
       } catch (cause) {
         if (!active) return;
-        setError(cause instanceof ApiError && cause.status === 401 ? "登录已过期，请重新登录。" : "作品加载失败，请检查网络或后端服务。");
+        setError(cause instanceof ApiError && cause.status === 401 ? "登录已过期，请重新登录。" : "作品加载失败，请检查网络后重试。");
       } finally {
         fetching = false;
         if (active) setLoading(false);
@@ -155,7 +165,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
             {isActive && <div className="task-card-actions"><button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><X size={16} />{deleting === task.id ? "取消中" : "取消任务"}</button></div>}
             {["completed", "failed", "unknown"].includes(task.status) && <div className="task-card-actions">
               <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
-              {task.status !== "completed" && <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} onClick={event => { if (task.status === "unknown" && !window.confirm("该任务结果尚未确认，请先联系客服核实。重新提交可能重复生成，继续编辑吗？")) event.preventDefault(); }}>重试</a>}
+              {task.status !== "completed" && <button type="button" disabled={retrying !== null} onClick={()=>void retryTask(task)}><RotateCcw size={16}/>{retrying === task.id ? "提交中…" : "重试"}</button>}
               {task.outputs.map((output, index) => <a href={`${output.url}?download=true`} download key={output.url} aria-label={`下载作品 ${index + 1}`}><Download size={16} />下载{task.outputs.length > 1 ? ` ${index + 1}` : ""}</a>)}
               <button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><Trash2 size={16} />{deleting === task.id ? "删除中" : "删除"}</button>
             </div>}
@@ -168,7 +178,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
   }
 
   return <>
-    {submittedNotice && <div className="task-submission-toast-backdrop"><div className="task-submission-toast" role="status"><Check size={20} aria-hidden="true"/><b>任务提交成功</b><button onClick={() => setSubmittedNotice(false)} aria-label="关闭通知"><X size={16}/></button></div></div>}
+
     {content}
   </>;
 }

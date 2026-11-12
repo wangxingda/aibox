@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { showPageNotice } from "./page-notice";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, type BackendTask, type BackendUser } from "@/lib/backend";
@@ -23,7 +24,7 @@ export function AssetGallery({ user, authLoading, authError, selectKind, onSelec
     let active = true;
     Promise.all(Array.from({ length: pageCount }, (_, i) => api<Asset[]>(`/uploads?kind=${kind}&limit=30&offset=${i * 30}`)))
       .then(pages => { if (active) { setAssets([...new Map(pages.flat().map(asset => [asset.id, asset])).values()]); setMore(pages[pages.length - 1].length === 30); setError(""); } })
-      .catch(() => { if (active) setError("素材加载失败，请检查网络或后端服务。"); })
+      .catch(() => { if (active) setError("素材加载失败，请检查网络后重试。"); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [user, kind, pageCount, revision]);
@@ -33,14 +34,14 @@ export function AssetGallery({ user, authLoading, authError, selectKind, onSelec
       const form = new FormData(); form.append("file", file);
       await api(file.type.startsWith("video/") ? "/uploads/video" : "/uploads", { method: "POST", body: form });
       setRevision(value => value + 1);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "上传失败，请重试。"); }
+    } catch (cause) { showPageNotice(cause instanceof Error ? cause.message : "上传失败，请重试。"); }
     finally { setBusy(false); }
   };
   const remove = async (asset: Asset) => {
     if (!window.confirm("确定删除这个素材吗？")) return;
     setBusy(true); setError("");
     try { await api(`/uploads/${encodeURIComponent(asset.id)}`, { method: "DELETE" }); setRevision(value => value + 1); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "删除失败，请重试。"); }
+    catch (cause) { showPageNotice(cause instanceof Error ? cause.message : "删除失败，请重试。"); }
     finally { setBusy(false); }
   };
   if (authLoading) return <div className="task-gallery-empty" role="status">正在检查登录状态…</div>;
@@ -68,7 +69,7 @@ export function WorkPicker({ user, authLoading, authError, kind, onSelect }: { u
     let active = true;
     Promise.all(Array.from({ length: pageCount }, (_, i) => api<BackendTask[]>(`/tasks?kind=${kind}&limit=30&offset=${i * 30}`)))
       .then(pages => { if (active) { setTasks([...new Map(pages.flat().map(task => [task.id, task])).values()]); setMore(pages[pages.length - 1].length === 30); setError(""); } })
-      .catch(() => { if (active) setError("作品加载失败，请检查网络或后端服务。"); })
+      .catch(() => { if (active) setError("作品加载失败，请检查网络后重试。"); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [user, kind, pageCount]);
