@@ -1,0 +1,705 @@
+{
+  "1": {
+    "inputs": {
+      "model_name": "wan2.1_i2v_480p_scaled_fp8_e4m3_lightx2v_4step_comfyui.safetensors",
+      "weight_dtype": "default",
+      "compute_dtype": "default",
+      "patch_cublaslinear": false,
+      "sage_attention": "auto",
+      "enable_fp16_accumulation": true
+    },
+    "class_type": "DiffusionModelLoaderKJ",
+    "_meta": {
+      "title": "底模 Wan2.1 I2V 480p fp8 · lightx2v 4步"
+    }
+  },
+  "2": {
+    "inputs": {
+      "name": "Wan2_1-InfiniTetalk-Single_fp16.safetensors"
+    },
+    "class_type": "ModelPatchLoader",
+    "_meta": {
+      "title": "InfiniTalk 补丁"
+    }
+  },
+  "3": {
+    "inputs": {
+      "clip_name": "umt5_xxl_fp16.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "文本编码器 umt5-xxl"
+    }
+  },
+  "4": {
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "VAE"
+    }
+  },
+  "5": {
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "CLIP Vision"
+    }
+  },
+  "6": {
+    "inputs": {
+      "audio_encoder_name": "wav2vec2-chinese-base_fp16.safetensors"
+    },
+    "class_type": "AudioEncoderLoader",
+    "_meta": {
+      "title": "音频编码器 wav2vec2 中文"
+    }
+  },
+  "8": {
+    "inputs": {
+      "image": ""
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "① 上传人物图（必换）"
+    }
+  },
+  "14": {
+    "inputs": {
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "读原图宽高"
+    }
+  },
+  "15": {
+    "inputs": {
+      "expression": "max(a, b)",
+      "values.a": [
+        "14",
+        0
+      ],
+      "values.b": [
+        "14",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "原图长边"
+    }
+  },
+  "16": {
+    "inputs": {
+      "value": 768
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "目标长边（改这里）"
+    }
+  },
+  "17": {
+    "inputs": {
+      "expression": "max(256, 16 * ceil(a * b / c / 16))",
+      "values.a": [
+        "14",
+        0
+      ],
+      "values.b": [
+        "16",
+        0
+      ],
+      "values.c": [
+        "15",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "视频宽"
+    }
+  },
+  "18": {
+    "inputs": {
+      "expression": "max(256, 16 * ceil(a * b / c / 16))",
+      "values.a": [
+        "14",
+        1
+      ],
+      "values.b": [
+        "16",
+        0
+      ],
+      "values.c": [
+        "15",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "视频高"
+    }
+  },
+  "19": {
+    "inputs": {
+      "width": [
+        "17",
+        1
+      ],
+      "height": [
+        "18",
+        1
+      ],
+      "upscale_method": "lanczos",
+      "keep_proportion": false,
+      "divisible_by": 16,
+      "crop": "disabled",
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "重绘参考帧"
+    }
+  },
+  "20": {
+    "inputs": {
+      "crop": "center",
+      "clip_vision": [
+        "5",
+        0
+      ],
+      "image": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "人物视觉编码"
+    }
+  },
+  "21": {
+    "inputs": {
+      "audio_path": "",
+      "audio": [
+        "202",
+        0
+      ]
+    },
+    "class_type": "Audio Duration",
+    "_meta": {
+      "title": "语音总时长（秒）"
+    }
+  },
+  "22": {
+    "inputs": {
+      "audio_encoder": [
+        "6",
+        0
+      ],
+      "audio": [
+        "201",
+        0
+      ]
+    },
+    "class_type": "AudioEncoderEncode",
+    "_meta": {
+      "title": "整段语音编码"
+    }
+  },
+  "23": {
+    "inputs": {
+      "text": "她对着镜头自然说话，表情生动，手势自然，轻微的身体摆动，电影级光影，高清写实，构图稳定",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "正面提示词"
+    }
+  },
+  "24": {
+    "inputs": {
+      "text": "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "clip": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "负面提示词"
+    }
+  },
+  "25": {
+    "inputs": {
+      "expression": "ceil(a * 25)",
+      "values.a": [
+        "21",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "总帧数"
+    }
+  },
+  "26": {
+    "inputs": {
+      "expression": "max(1, floor((a - 10) / 72))",
+      "values.a": [
+        "25",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "续写段数"
+    }
+  },
+  "27": {
+    "inputs": {
+      "mode": "single_speaker",
+      "width": [
+        "19",
+        1
+      ],
+      "height": [
+        "19",
+        2
+      ],
+      "length": 81,
+      "motion_frame_count": 9,
+      "audio_scale": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "model_patch": [
+        "2",
+        0
+      ],
+      "positive": [
+        "23",
+        0
+      ],
+      "negative": [
+        "24",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "audio_encoder_output_1": [
+        "22",
+        0
+      ],
+      "clip_vision_output": [
+        "20",
+        0
+      ],
+      "start_image": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "WanInfiniteTalkToVideo",
+    "_meta": {
+      "title": "首段生成（81 帧）"
+    }
+  },
+  "28": {
+    "inputs": {
+      "seed": 0,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "27",
+        0
+      ],
+      "positive": [
+        "27",
+        1
+      ],
+      "negative": [
+        "27",
+        2
+      ],
+      "latent_image": [
+        "27",
+        3
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "采样 4步 / cfg1"
+    }
+  },
+  "29": {
+    "inputs": {
+      "samples": [
+        "28",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "解码首段"
+    }
+  },
+  "30": {
+    "inputs": {
+      "total": [
+        "26",
+        1
+      ],
+      "initial_value1": [
+        "29",
+        0
+      ]
+    },
+    "class_type": "easy forLoopStart",
+    "_meta": {
+      "title": "For 循环开始"
+    }
+  },
+  "31": {
+    "inputs": {
+      "a": 0,
+      "b": [
+        "30",
+        1
+      ],
+      "operation": "add"
+    },
+    "class_type": "easy mathInt",
+    "_meta": {
+      "title": "每轮 seed +1"
+    }
+  },
+  "32": {
+    "inputs": {
+      "mode": "single_speaker",
+      "width": [
+        "19",
+        1
+      ],
+      "height": [
+        "19",
+        2
+      ],
+      "length": 81,
+      "motion_frame_count": 9,
+      "audio_scale": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "model_patch": [
+        "2",
+        0
+      ],
+      "positive": [
+        "23",
+        0
+      ],
+      "negative": [
+        "24",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "audio_encoder_output_1": [
+        "22",
+        0
+      ],
+      "clip_vision_output": [
+        "20",
+        0
+      ],
+      "start_image": [
+        "19",
+        0
+      ],
+      "previous_frames": [
+        "30",
+        2
+      ]
+    },
+    "class_type": "WanInfiniteTalkToVideo",
+    "_meta": {
+      "title": "循环体：续写下一段"
+    }
+  },
+  "33": {
+    "inputs": {
+      "seed": [
+        "31",
+        0
+      ],
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "32",
+        0
+      ],
+      "positive": [
+        "32",
+        1
+      ],
+      "negative": [
+        "32",
+        2
+      ],
+      "latent_image": [
+        "32",
+        3
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "采样（循环体）"
+    }
+  },
+  "34": {
+    "inputs": {
+      "samples": [
+        "33",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "解码本段"
+    }
+  },
+  "35": {
+    "inputs": {
+      "batch_index": 9,
+      "length": 72,
+      "image": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "丢 9 帧 motion"
+    }
+  },
+  "36": {
+    "inputs": {
+      "image1": [
+        "30",
+        2
+      ],
+      "image2": [
+        "35",
+        0
+      ]
+    },
+    "class_type": "ImageBatch",
+    "_meta": {
+      "title": "拼接累积帧"
+    }
+  },
+  "37": {
+    "inputs": {
+      "flow": [
+        "30",
+        0
+      ],
+      "initial_value1": [
+        "36",
+        0
+      ]
+    },
+    "class_type": "easy forLoopEnd",
+    "_meta": {
+      "title": "For 循环结束"
+    }
+  },
+  "38": {
+    "inputs": {
+      "expression": "max(1, a - 3)",
+      "values.a": [
+        "25",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "裁剪长度"
+    }
+  },
+  "39": {
+    "inputs": {
+      "batch_index": 3,
+      "length": [
+        "38",
+        1
+      ],
+      "image": [
+        "37",
+        0
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "丢开头 3 帧"
+    }
+  },
+  "40": {
+    "inputs": {
+      "image1": [
+        "19",
+        0
+      ],
+      "image2": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "ImageBatch",
+    "_meta": {
+      "title": "复制参考帧 ×2"
+    }
+  },
+  "41": {
+    "inputs": {
+      "image1": [
+        "40",
+        0
+      ],
+      "image2": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "ImageBatch",
+    "_meta": {
+      "title": "补第 3 帧"
+    }
+  },
+  "42": {
+    "inputs": {
+      "image1": [
+        "41",
+        0
+      ],
+      "image2": [
+        "39",
+        0
+      ]
+    },
+    "class_type": "ImageBatch",
+    "_meta": {
+      "title": "拼成完整帧序列"
+    }
+  },
+  "43": {
+    "inputs": {
+      "frame_rate": 25,
+      "loop_count": 0,
+      "filename_prefix": "digital-3in1",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": true,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "42",
+        0
+      ],
+      "audio": [
+        "202",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "⑨ 合成视频 25fps"
+    }
+  },
+  "150": {
+    "inputs": {
+      "audio": ""
+    },
+    "class_type": "LoadAudio",
+    "_meta": {
+      "title": "① 上传音频（任意长度）"
+    }
+  },
+  "151": {
+    "inputs": {
+      "chunk_fade_shape": "linear",
+      "chunk_length": 10,
+      "chunk_overlap": 0.1,
+      "audio": [
+        "150",
+        0
+      ]
+    },
+    "class_type": "AudioSeparation",
+    "_meta": {
+      "title": "人声分离 → Vocals"
+    }
+  },
+  "201": {
+    "inputs": {
+      "any_02": [
+        "151",
+        3
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "音频汇合 · 口型"
+    }
+  },
+  "202": {
+    "inputs": {
+      "any_02": [
+        "150",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "音频汇合 · 音轨与时长"
+    }
+  }
+}

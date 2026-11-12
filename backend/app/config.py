@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     cors_origins: str = 'http://localhost:3000,http://localhost:3001'
     cookie_secure: bool = False
     workflow_config: str = 'workflows/registry.json'
+    admin_user_ids: str = ''
     upload_dir: str = 'storage/uploads'
     example_dir: str = '../public/sites/aibox/video-examples'
     template_dir: str = '../public/sites/aibox/templates'

@@ -225,16 +225,20 @@ def submit(task_id):
         input1 = session.get(TaskInputAsset, (task.id, 0))
         input2 = session.get(TaskInputAsset, (task.id, 1))
         input_video = session.get(TaskInputAsset, (task.id, 2))
+        input_audio = session.get(TaskInputAsset, (task.id, 3))
+        audio_id = input_audio.upload_id if input_audio else task.options.get('audio_upload_id')
+        audio = session.get(Upload, audio_id) if audio_id else None
         upload1_id = input1.upload_id if input1 else task.upload_id
         upload2_id = input2.upload_id if input2 else task.options.get('second_upload_id')
         video_id = input_video.upload_id if input_video else task.options.get('video_upload_id')
         upload = session.get(Upload, upload1_id) if upload1_id else None
         upload2 = session.get(Upload, upload2_id) if upload2_id else None
         video = session.get(Upload, video_id) if video_id else None
-        invalid_input = any(upload_id and (not item or item.user_id != task.user_id) for upload_id, item in ((upload1_id, upload), (upload2_id, upload2), (video_id, video)))
+        invalid_input = any(upload_id and (not item or item.user_id != task.user_id) for upload_id, item in ((upload1_id, upload), (upload2_id, upload2), (video_id, video), (audio_id, audio)))
         upload_data = (upload.path, upload.content_type) if upload else None
         upload2_data = (upload2.path, upload2.content_type) if upload2 else None
         video_data = (video.path, video.content_type) if video else None
+        audio_data = (audio.path, audio.content_type) if audio else None
     if invalid_input:
         update(task_id, 'failed', '参考图片不存在或不可访问。', expected={'submitting'})
         return
@@ -243,7 +247,7 @@ def submit(task_id):
     try:
         with httpx.Client(timeout=60, headers=headers()) as client:
             uploaded_images = []
-            for entry in (upload_data, upload2_data, video_data):
+            for entry in (upload_data, upload2_data, video_data, audio_data):
                 if not entry:
                     uploaded_images.append(None)
                     continue
@@ -259,7 +263,7 @@ def submit(task_id):
                 # Pre-migration queued tasks have no snapshot; preserve legacy behavior.
                 workflow = build_workflow(data['model'], data['kind'], data['prompt'], data['options'], *uploaded_images)
             else:
-                for key, value in zip(('image', 'image2', 'video'), uploaded_images):
+                for key, value in zip(('image', 'image2', 'video', 'audio'), uploaded_images):
                     if value is not None:
                         node, field = data['image_inputs'][key].split('.', 1)
                         workflow[node]['inputs'][field] = value

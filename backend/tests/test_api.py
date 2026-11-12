@@ -813,3 +813,83 @@ def test_audio_asset_permissions(client):
     assert client.get('/api/uploads?kind=audio').json() == []
     assert client.get(f'/api/uploads/{uid}/content').status_code == 404
     assert client.delete(f'/api/uploads/{uid}').status_code == 404
+
+
+def test_admin_access_and_user_content(client, monkeypatch):
+    from app import main
+    from app.db import User, Session
+    from sqlalchemy import select
+    assert client.get('/api/admin/stats').status_code == 401
+    register(client, 'owner@example.com')
+    image = io.BytesIO()
+    Image.new('RGB', (4, 4), 'red').save(image, format='PNG')
+    upload_id = client.post('/api/uploads', files={'file': ('image.png', image.getvalue(), 'image/png')}).json()['id']
+    client.post('/api/auth/logout')
+    register(client, 'admin@example.com')
+    assert client.get('/api/admin/items?category=uploads').status_code == 403
+    with Session() as session:
+        admin = session.scalar(select(User).where(User.email == 'admin@example.com'))
+        monkeypatch.setattr(main.cfg, 'admin_user_ids', admin.id)
+    response = client.get('/api/admin/items?category=uploads&window=all')
+    assert response.status_code == 200
+    assert response.json()['items'][0]['id'] == upload_id
+    assert client.get(f'/api/uploads/{upload_id}/content').status_code == 404
+    assert client.get(f'/api/admin/uploads/{upload_id}/content').status_code == 200
+    from app.db import CreditCharge
+    from app.credits import today
+    with Session.begin() as session:
+        owner = session.scalar(select(User).where(User.email == 'owner@example.com'))
+        session.add_all([CreditCharge(task_id='charge-1', user_id=owner.id, day=today(), amount=100, refunded=False), CreditCharge(task_id='charge-2', user_id=owner.id, day=today(), amount=50, refunded=True)])
+    stats = client.get('/api/admin/stats').json()
+    total = next(row for row in stats if row['window'] == 'all')
+    assert total['users'] == 2
+    assert total['active_users'] == 1
+    assert total['credits'] == 100
+    assert next(row for row in stats if row['window'] == '24h')['credits'] == 100
+    assert client.delete(f'/api/admin/uploads/{upload_id}').status_code == 200
+    assert client.get(f'/api/admin/uploads/{upload_id}/content').status_code == 404
+    client.post('/api/auth/logout')
+    assert client.get('/api/admin/uploads/' + upload_id + '/content').status_code == 401
+
+
+def test_digital_human_audio_task_is_idempotent_and_owned(client, monkeypatch):
+    import wave
+    from app.db import Session, TaskInputAsset, TaskWorkflowSnapshot
+    from app.workflows import registry
+    workflow = json.loads((Path(__file__).resolve().parents[1] / 'workflows' / 'infinitetalk_audio.json').read_text())
+    path = Path(settings().workflow_config)
+    (path.parent / 'digital.json').write_text(json.dumps(workflow))
+    config = json.loads(path.read_text())
+    config['InfiniTalk 音频驱动'] = {'kind':'video','file':'digital.json','requires_image':True,'requires_audio':True,'requires_prompt':False,'default_prompt':'自然说话','inputs':{'prompt':'23.text','image':'8.image','audio':'150.audio'},'modes':['digital-human-audio'],'output_nodes':['43']}
+    path.write_text(json.dumps(config))
+    registry.cache_clear()
+    register(client)
+    image = io.BytesIO(); Image.new('RGB', (4, 4), 'red').save(image, format='PNG')
+    image_id = client.post('/api/uploads', files={'file':('p.png', image.getvalue(), 'image/png')}).json()['id']
+    audio = io.BytesIO()
+    with wave.open(audio, 'wb') as wav:
+        wav.setnchannels(1); wav.setsampwidth(2); wav.setframerate(8000); wav.writeframes(b'\0\0' * 8000)
+    audio_id = client.post('/api/uploads/audio', files={'file':('a.wav', audio.getvalue(), 'audio/wav')}).json()['id']
+    params = {'model':'InfiniTalk 音频驱动','kind':'video','audio_upload_id':audio_id}
+    assert client.get('/api/credits/quote', params=params).json()['cost'] == 165
+    body = {'kind':'video','model':'InfiniTalk 音频驱动','mode':'digital-human-audio','upload_id':image_id,'audio_upload_id':audio_id}
+    first = client.post('/api/tasks', json=body, headers={'Idempotency-Key':'digital-once'})
+    assert first.status_code == 202, first.text
+    assert client.post('/api/tasks', json=body, headers={'Idempotency-Key':'digital-once'}).json()['id'] == first.json()['id']
+    with Session() as session:
+        snapshot = session.get(TaskWorkflowSnapshot, first.json()['id'])
+        assert snapshot.workflow['150']['inputs']['audio'] == '__INPUT_AUDIO__'
+        assert snapshot.image_inputs['audio'] == '150.audio'
+        assert session.get(TaskInputAsset, (first.json()['id'], 3)).upload_id == audio_id
+    client.post('/api/auth/logout'); register(client, 'other-digital@example.com')
+    assert client.get('/api/credits/quote', params=params).status_code == 404
+    assert client.post('/api/tasks', json=body, headers={'Idempotency-Key':'other'}).status_code == 404
+
+
+def test_digital_human_modes_not_yet_available(client):
+    modes = client.get('/api/digital-human/modes').json()
+    assert {item['id']: item['available'] for item in modes} == {'audio': True, 'text': False, 'clone': False}
+    register(client)
+    for mode in ('digital-human-text', 'digital-human-clone'):
+        response = client.post('/api/tasks', json={'kind':'video','model':'future','mode':mode}, headers={'Idempotency-Key':mode})
+        assert response.status_code == 503

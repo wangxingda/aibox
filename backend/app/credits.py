@@ -15,6 +15,10 @@ def task_credit_cost(model: str, kind: str, duration: str | None = None,
         if duration not in ('5s', '10s', '15s'):
             raise CreditPricingError('请选择支持的视频时长')
         return {'5s': 330, '10s': 660, '15s': 990}[duration]
+    if kind == 'video' and model == 'InfiniTalk 音频驱动':
+        if frames is None or not 1 <= frames <= 3750:
+            raise CreditPricingError('请先选择不超过 150 秒的驱动音频')
+        return 165 * max(1, math.ceil(frames / 75))
     if kind == 'video' and model in ('Wan SCAIL2 角色替换', 'Wan Animate2 动作迁移'):
         if frames is None or not 1 <= frames <= 3805:
             raise CreditPricingError('请先选择有效的驱动视频')

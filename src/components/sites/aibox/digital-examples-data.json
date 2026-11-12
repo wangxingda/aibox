@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1b04fe7e-966d-475c-b54a-1d5a9fe73100",
+    "title": "真实感数字人口播",
+    "image": "/sites/aibox/templates/1b04fe7e-966d-475c-b54a-1d5a9fe73100-cover.jpg",
+    "inputImage": "/sites/aibox/templates/1b04fe7e-966d-475c-b54a-1d5a9fe73100-input.jpg",
+    "prompt": "角色根据音频轻微动作，他不看镜头的口播，不要大幅度动作，身体主体不动，呈现单人口播效果，表情不要太夸张，人物躯干不动，他侧身双眼看向前方而不是看向镜头，人物的手举起，做出讲话的动作，要求自然，身体主体不要晃动，动作晃动不要太多，整体稳定一些，自然一些，身体不要晃动"
+  },
+  {
+    "id": "fb5daaa7-f36a-4aba-b2bc-4ebe2667536f",
+    "title": "数字人·人物影像",
+    "image": "/sites/aibox/templates/fb5daaa7-f36a-4aba-b2bc-4ebe2667536f-cover.jpg",
+    "inputImage": "/sites/aibox/templates/fb5daaa7-f36a-4aba-b2bc-4ebe2667536f-input.jpg",
+    "prompt": "Make the character speak in a natural way according to the audio."
+  },
+  {
+    "id": "27b25b43-bc8b-4004-acc1-8634d105a83f",
+    "title": "数字人·人物影像 2",
+    "image": "/sites/aibox/templates/27b25b43-bc8b-4004-acc1-8634d105a83f-cover.jpg",
+    "inputImage": "/sites/aibox/templates/27b25b43-bc8b-4004-acc1-8634d105a83f-input.jpg",
+    "prompt": "Make the character speak in a natural way according to the audio."
+  }
+]

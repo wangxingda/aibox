@@ -22,7 +22,7 @@ const activeStatuses = new Set(["queued", "submitting", "running", "comfy_queued
 
 function taskTypeName(task: BackendTask) {
   const modes: Record<string, string> = {
-    "text-to-image": "文生图", "image-edit": "图片编辑", "image-to-image": "图片编辑",
+    "digital-human-audio": "数字人音频驱动", "text-to-image": "文生图", "image-edit": "图片编辑", "image-to-image": "图片编辑",
     "text-to-video": "文生音视频", "image-to-video": "图生音视频", "refer-to-video": "图生音视频",
     "character-replacement": "角色替换", "motion-transfer": "动作迁移",
     "video-to-video": "视频生成", "frame-to-video": "视频生成",
@@ -164,7 +164,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
             </div>
             {isActive && <div className="task-card-actions"><button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><X size={16} />{deleting === task.id ? "取消中" : "取消任务"}</button></div>}
             {["completed", "failed", "unknown"].includes(task.status) && <div className="task-card-actions">
-              <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
+              {task.options?.mode !== "digital-human-audio" && <a href={`/${task.kind === "video" ? (task.options?.mode === "digital-human-audio" ? "digital-human" : task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>}
               {task.status !== "completed" && <button type="button" disabled={retrying !== null} onClick={()=>void retryTask(task)}><RotateCcw size={16}/>{retrying === task.id ? "提交中…" : "重试"}</button>}
               {task.outputs.map((output, index) => <a href={`${output.url}?download=true`} download key={output.url} aria-label={`下载作品 ${index + 1}`}><Download size={16} />下载{task.outputs.length > 1 ? ` ${index + 1}` : ""}</a>)}
               <button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><Trash2 size={16} />{deleting === task.id ? "删除中" : "删除"}</button>

@@ -101,7 +101,7 @@ def extend_driving_video(workflow: dict, model: str, frame_count: int) -> dict:
     workflow[output]['inputs']['images'] = ['full_crop', 0]
     return workflow
 
-def build_workflow(model: str, kind: str, prompt: str, options: dict, image: str | None, image2: str | None = None, video: str | None = None) -> dict:
+def build_workflow(model: str, kind: str, prompt: str, options: dict, image: str | None, image2: str | None = None, video: str | None = None, audio: str | None = None) -> dict:
     config = registry().get(model)
     if not config or config.get('kind') != kind:
         raise WorkflowError('没有配置此类型的工作流')
@@ -127,7 +127,7 @@ def build_workflow(model: str, kind: str, prompt: str, options: dict, image: str
             workflow[node]['inputs'][field] = value
         except (KeyError, TypeError, ValueError) as exc:
             raise WorkflowError('工作流固定参数配置错误') from exc
-    values = {'prompt': prompt or config.get('default_prompt'), 'image': image, 'image2': image2, 'video': video, 'seed': secrets.randbelow(2**31), **options}
+    values = {'prompt': prompt or config.get('default_prompt'), 'image': image, 'image2': image2, 'video': video, 'audio': audio, 'seed': secrets.randbelow(2**31), **options}
     for key, default in config.get('optional_input_defaults', {}).items():
         if values.get(key) is None:
             values[key] = default
@@ -162,6 +162,10 @@ def build_workflow(model: str, kind: str, prompt: str, options: dict, image: str
         raise WorkflowError('此工作流需要上传第一张参考图片')
     if config.get('requires_second_image') and not image2:
         raise WorkflowError('此工作流需要上传第二张参考图片')
+    if audio and 'audio' not in config.get('inputs', {}):
+        raise WorkflowError('此工作流不支持音频输入')
+    if config.get('requires_audio') and not audio:
+        raise WorkflowError('此工作流需要上传驱动音频')
     if config.get('requires_video') and not video:
         raise WorkflowError('此工作流需要上传驱动视频')
     return workflow

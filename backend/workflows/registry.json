@@ -176,5 +176,31 @@
       "refer-to-video"
     ],
     "default_ratio": "16:9"
+  },
+  "InfiniTalk 音频驱动": {
+    "kind": "video",
+    "file": "infinitetalk_audio.json",
+    "requires_image": true,
+    "requires_audio": true,
+    "requires_prompt": false,
+    "max_prompt_length": 3000,
+    "fixed_resolution": true,
+    "resolution_label": "由人物图片决定",
+    "inputs": {
+      "prompt": "23.text",
+      "image": "8.image",
+      "audio": "150.audio",
+      "seed": [
+        "28.seed",
+        "31.a"
+      ]
+    },
+    "modes": [
+      "digital-human-audio"
+    ],
+    "output_nodes": [
+      "43"
+    ],
+    "default_prompt": "她对着镜头自然说话，表情生动，手势自然，轻微的身体摆动，电影级光影，高清写实，构图稳定"
   }
 }

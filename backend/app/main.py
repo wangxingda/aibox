@@ -4,6 +4,7 @@ import hashlib
 import re
 import shutil
 import json
+import math
 import os
 import subprocess
 import uuid
@@ -22,13 +23,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pwdlib import PasswordHash
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import case, delete, or_, select
+from sqlalchemy import case, delete, func, or_, select, union
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
 from .credits import CreditPricingError, locked_wallet, refund_task, task_credit_cost, today
 from .config import settings
-from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, VoiceWork, engine
+from .db import Base, CreditCharge, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, VoiceWork, engine
 from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
 from .output_storage import local_output
 
@@ -86,6 +87,7 @@ class TaskInput(BaseModel):
     upload_id: str | None = None
     second_upload_id: str | None = None
     video_upload_id: str | None = None
+    audio_upload_id: str | None = None
     quality: Literal['540P', '720P', '2K', 'auto'] = '540P'
     ratio: Literal['16:9', '9:16', '1:1', 'auto'] = '16:9'
     duration: Literal['5s', '10s', '15s'] = '5s'
@@ -419,7 +421,7 @@ def delete_upload(upload_id: str, user: User = Depends(current_user), session: D
     return {'deleted': True}
 
 @app.get('/api/credits/quote')
-def credit_quote(model: str, kind: str, duration: str = '', video_upload_id: str | None = None,
+def credit_quote(model: str, kind: str, duration: str = '', video_upload_id: str | None = None, audio_upload_id: str | None = None,
                  user: User = Depends(current_user), session: DBSession = Depends(db)):
     frames = None
     if video_upload_id:
@@ -431,14 +433,35 @@ def credit_quote(model: str, kind: str, duration: str = '', video_upload_id: str
             frames = int(json.loads(probe.stdout)['streams'][0]['nb_read_frames'])
         except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, IndexError, OSError):
             raise HTTPException(422, '无法读取驱动视频帧数')
+    if audio_upload_id:
+        upload = session.get(Upload, audio_upload_id)
+        if not upload or upload.user_id != user.id or not upload.content_type.startswith('audio/'):
+            raise HTTPException(404, '音频素材不存在')
+        try:
+            probe = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'json', str(cfg.path(cfg.upload_dir) / Path(upload.path).name)], capture_output=True, timeout=30, check=True)
+            seconds = float(json.loads(probe.stdout)['format']['duration'])
+            if not 0 < seconds <= 150: raise ValueError('duration')
+            frames = max(1, math.ceil(seconds * 25))
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, OSError):
+            raise HTTPException(422, '驱动音频无法读取或超过 150 秒')
     try:
         return {'cost': task_credit_cost(model, kind, duration, frames)}
     except CreditPricingError as exc:
         raise HTTPException(422, str(exc))
 
+@app.get('/api/digital-human/modes')
+def digital_human_modes():
+    return [
+        {'id': 'audio', 'name': '音频驱动', 'available': True},
+        {'id': 'text', 'name': '文本驱动', 'available': False},
+        {'id': 'clone', 'name': '声音克隆', 'available': False},
+    ]
+
 @app.post('/api/tasks', status_code=202)
 def create_task(data: TaskInput, user: User = Depends(current_user), session: DBSession = Depends(db), idempotency_key: str | None = Header(default=None, alias='Idempotency-Key')):
     prompt = data.prompt.strip()
+    if data.mode in ('digital-human-text', 'digital-human-clone'):
+        raise HTTPException(503, '此数字人模式的工作流尚未配置')
     if idempotency_key and not re.fullmatch(r'[A-Za-z0-9._-]{1,128}', idempotency_key):
         raise HTTPException(400, '无效的请求标识')
     payload = data.model_dump()
@@ -460,7 +483,7 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
         existing = previous_request()
         if existing:
             return serialize(existing)
-    for upload_id, expected_type in ((data.upload_id, 'image/'), (data.second_upload_id, 'image/'), (data.video_upload_id, 'video/')):
+    for upload_id, expected_type in ((data.upload_id, 'image/'), (data.second_upload_id, 'image/'), (data.video_upload_id, 'video/'), (data.audio_upload_id, 'audio/')):
         if upload_id:
             upload = session.get(Upload, upload_id)
             if not upload or upload.user_id != user.id:
@@ -472,10 +495,20 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
         raise HTTPException(422, '当前模型不支持此创作模式')
     if data.mode == 'text-to-video' and (data.upload_id or data.second_upload_id or data.video_upload_id):
         raise HTTPException(422, '文生视频仅支持文字提示词')
-    options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
+    options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'audio_upload_id': data.audio_upload_id, 'output_nodes': model_config.get('output_nodes')}
     frame_count = None
     try:
-        workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None)
+        workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None, '__INPUT_AUDIO__' if data.audio_upload_id else None)
+        if data.audio_upload_id and data.model == 'InfiniTalk 音频驱动':
+            audio = session.get(Upload, data.audio_upload_id)
+            path = cfg.path(cfg.upload_dir) / Path(audio.path).name
+            try:
+                probe = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'json', str(path)], capture_output=True, timeout=30, check=True)
+                seconds = float(json.loads(probe.stdout)['format']['duration'])
+                if not 0 < seconds <= 150: raise ValueError('duration')
+                frame_count = max(1, math.ceil(seconds * 25))
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, OSError):
+                raise HTTPException(422, '驱动音频无法读取或超过 150 秒')
         if data.video_upload_id and data.model in ('Wan SCAIL2 角色替换', 'Wan Animate2 动作迁移'):
             driving = session.get(Upload, data.video_upload_id)
             path = cfg.path(cfg.upload_dir) / Path(driving.path).name
@@ -506,11 +539,11 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
     from .db import CreditCharge
     session.add(CreditCharge(task_id=task.id, user_id=user.id, day=today(), amount=price, refunded=False))
     session.flush()
-    for position, upload_id in enumerate((data.upload_id, data.second_upload_id, data.video_upload_id)):
+    for position, upload_id in enumerate((data.upload_id, data.second_upload_id, data.video_upload_id, data.audio_upload_id)):
         if upload_id:
             session.add(TaskInputAsset(task_id=task.id, position=position, upload_id=upload_id))
     session.add(TaskEvent(id=str(uuid.uuid4()), task_id=task.id, status='queued'))
-    input_map = {key: value for key, value in registry()[data.model]['inputs'].items() if key in ('image', 'image2', 'video')}
+    input_map = {key: value for key, value in registry()[data.model]['inputs'].items() if key in ('image', 'image2', 'video', 'audio')}
     session.add(TaskWorkflowSnapshot(task_id=task.id, workflow=workflow, image_inputs=input_map))
     if idempotency_key:
         session.add(TaskRequest(id=str(uuid.uuid4()), user_id=user.id, request_key=idempotency_key, payload_hash=fingerprint, task_id=task.id))
@@ -548,7 +581,7 @@ def retry_task(task_id: str, user: User = Depends(current_user), session: DBSess
         task.status = 'failed'
     options = task.options or {}
     data = TaskInput(kind=task.kind, model=task.model, prompt=task.prompt, upload_id=task.upload_id,
-                     second_upload_id=options.get('second_upload_id'), video_upload_id=options.get('video_upload_id'),
+                     second_upload_id=options.get('second_upload_id'), video_upload_id=options.get('video_upload_id'), audio_upload_id=options.get('audio_upload_id'),
                      mode=options.get('mode'), quality=options.get('quality', '540P'), ratio=options.get('ratio', '16:9'), duration=options.get('duration', '5s'))
     return create_task(data, user, session, idempotency_key)
 
@@ -737,3 +770,89 @@ def delete_voice_work(work_id: str, user: User = Depends(current_user), session:
     session.commit()
     path.unlink(missing_ok=True)
     return {'ok': True}
+
+
+# Administrative access is opt-in and always checked on the server.
+def current_admin(user: User = Depends(current_user)) -> User:
+    if user.id not in {item.strip() for item in cfg.admin_user_ids.split(',') if item.strip()}:
+        raise HTTPException(403, '无权访问管理后台')
+    return user
+
+@app.get('/api/admin/me')
+def admin_me(user: User = Depends(current_admin)):
+    return {'id': user.id, 'email': user.email}
+
+@app.get('/api/admin/stats')
+def admin_stats(user: User = Depends(current_admin), session: DBSession = Depends(db)):
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    result = []
+    for label, hours in [('24h', 24), ('7d', 168), ('30d', 720), ('all', None)]:
+        since = now - timedelta(hours=hours) if hours else None
+        def count(model, *conditions):
+            q = select(func.count()).select_from(model).where(*conditions)
+            if since: q = q.where(model.created_at >= since)
+            return session.scalar(q) or 0
+        activity = []
+        for model in (Task, VoiceWork, Upload):
+            q = select(model.user_id)
+            if since: q = q.where(model.created_at >= since)
+            activity.append(q)
+        active_users = session.scalar(select(func.count()).select_from(union(*activity).subquery())) or 0
+        charge_query = select(func.coalesce(func.sum(CreditCharge.amount), 0)).where(CreditCharge.refunded.is_(False))
+        # Charges only retain a Shanghai calendar date, not an exact timestamp.
+        days = {'24h': 1, '7d': 7, '30d': 30}.get(label)
+        if days: charge_query = charge_query.where(CreditCharge.day >= (datetime.fromisoformat(today()).date() - timedelta(days=days - 1)).isoformat(), CreditCharge.day <= today())
+        credits = session.scalar(charge_query) or 0
+        result.append({'window': label, 'users': count(User), 'active_users': active_users, 'credits': credits, 'image': count(Task, Task.kind == 'image'), 'video': count(Task, Task.kind == 'video'), 'voice': count(VoiceWork), 'uploads': count(Upload), 'failed': count(Task, Task.status == 'failed')})
+    return result
+
+@app.get('/api/admin/items')
+def admin_items(category: Literal['tasks', 'voice', 'uploads', 'users'] = 'tasks', kind: str = '', window: Literal['24h', '7d', '30d', 'all'] = 'all', offset: int = 0, limit: int = 24, user: User = Depends(current_admin), session: DBSession = Depends(db)):
+    models = {'tasks': Task, 'voice': VoiceWork, 'uploads': Upload, 'users': User}
+    model = models[category]
+    query = select(model) if category == 'users' else select(model, User.email).join(User, model.user_id == User.id)
+    hours = {'24h': 24, '7d': 168, '30d': 720}.get(window)
+    if hours: query = query.where(model.created_at >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=hours))
+    if category == 'tasks' and kind in ('image', 'video'): query = query.where(Task.kind == kind)
+    if category == 'uploads' and kind in ('image', 'video', 'audio'): query = query.where(Upload.content_type.like(f'{kind}/%'))
+    limit = max(1, min(limit, 100)); offset = max(0, offset)
+    rows = session.execute(query.order_by(model.created_at.desc(), model.id.desc()).offset(offset).limit(limit + 1)).all()
+    more = len(rows) > limit
+    items = []
+    for row in rows[:limit]:
+        obj = row[0]; email = obj.email if category == 'users' else row[1]
+        item = {'id': obj.id, 'email': email, 'created_at': obj.created_at.isoformat() + 'Z'}
+        if category == 'tasks':
+            item.update(kind=obj.kind, status=obj.status, model=obj.model, text=obj.prompt, media=[f'/api/admin/tasks/{obj.id}/outputs/{i}' for i in range(len(obj.outputs or []))])
+        elif category == 'voice': item.update(kind='audio', text=obj.text, name=obj.voice_name, media=[f'/api/admin/voice/{obj.id}/content'])
+        elif category == 'uploads': item.update(kind=obj.content_type.split('/')[0], name=obj.name, content_type=obj.content_type, media=[f'/api/admin/uploads/{obj.id}/content'])
+        items.append(item)
+    return {'items': items, 'more': more}
+
+@app.get('/api/admin/uploads/{upload_id}/content')
+def admin_upload_content(upload_id: str, admin: User = Depends(current_admin), session: DBSession = Depends(db)):
+    item = session.get(Upload, upload_id)
+    if not item: raise HTTPException(404, '素材不存在')
+    return upload_content(upload_id, session.get(User, item.user_id), session)
+
+@app.get('/api/admin/voice/{work_id}/content')
+def admin_voice_content(work_id: str, admin: User = Depends(current_admin), session: DBSession = Depends(db)):
+    item = session.get(VoiceWork, work_id)
+    if not item: raise HTTPException(404, '作品不存在')
+    return voice_work_content(work_id, session.get(User, item.user_id), session)
+
+@app.get('/api/admin/tasks/{task_id}/outputs/{index}')
+async def admin_task_output(task_id: str, index: int, request: Request, admin: User = Depends(current_admin), session: DBSession = Depends(db)):
+    item = session.get(Task, task_id)
+    if not item: raise HTTPException(404, '作品不存在')
+    return await output(task_id, index, request, False, session.get(User, item.user_id), session)
+
+@app.delete('/api/admin/{category}/{item_id}')
+def admin_delete(category: Literal['tasks', 'voice', 'uploads'], item_id: str, admin: User = Depends(current_admin), session: DBSession = Depends(db)):
+    model = {'tasks': Task, 'voice': VoiceWork, 'uploads': Upload}[category]
+    item = session.get(model, item_id)
+    if not item: raise HTTPException(404, '内容不存在')
+    owner = session.get(User, item.user_id)
+    if category == 'tasks': return delete_task(item_id, owner, session)
+    if category == 'uploads': return delete_upload(item_id, owner, session)
+    return delete_voice_work(item_id, owner, session)
