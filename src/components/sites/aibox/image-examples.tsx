@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import examples from "./image-examples-data.json";
+import homeEditExample from "./home-edit-example.json";
 import { ExampleMediaPreview } from "./example-media-preview";
 import "./image-examples.css";
 
@@ -11,7 +12,7 @@ type Example = { title: string; prompt: string; image: string; inputImage?: stri
 
 export function ImageExamples({ edit, onApply }: { edit: boolean; onApply: (example: Example) => void }) {
   const [selected, setSelected] = useState(0);
-  const items: Example[] = edit ? examples.edit : examples.text;
+  const items: Example[] = edit ? [homeEditExample, ...examples.edit] : examples.text;
   const item = items[Math.min(selected, items.length - 1)];
   return <div className="image-examples">
     <div className="image-examples-heading"><div><h2>参考示例</h2><p>选择灵感，快速开始创作</p></div><Sparkles size={20} aria-hidden="true" /></div>

@@ -137,3 +137,5 @@
 .workspace .task-card-actions button:hover { border-color: #9d6059; background: #4b302d; color: #ffd4ca; }
 .task-card-actions button:disabled { opacity: .6; cursor: wait; }
 @media (hover: none) { .task-card-actions { opacity: 1; pointer-events: auto; transform: none; } }
+.voice-work-preview{display:flex;flex-direction:column;justify-content:center;gap:16px;padding:16px;min-width:0}
+.voice-work-identity{display:flex;align-items:center;gap:10px;min-width:0}.voice-work-identity>span{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;background:#294849;color:#9cebe0}.voice-work-identity>div{display:flex;flex-direction:column;gap:4px;min-width:0}.voice-work-identity small{font-size:11px;color:#95aaa8}.voice-work-identity b{font-size:14px;color:#eaf5f2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.voice-work-preview .voice-player{width:100%;min-width:0}

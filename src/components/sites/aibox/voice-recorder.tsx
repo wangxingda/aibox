@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 
 export function useVoiceRecorder(onRecorded: (blob: Blob) => void) {
+  const [error, setError] = useState("");
+  const [openingMic, setOpeningMic] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [recorded, setRecorded] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -19,7 +21,7 @@ export function useVoiceRecorder(onRecorded: (blob: Blob) => void) {
   async function record() {
     if (recording) { recorder.current?.stop(); return; }
     if (opening.current) return;
-    opening.current = true;
+    opening.current = true; setOpeningMic(true); setError("");
     try {
       const input = await navigator.mediaDevices.getUserMedia({ audio: true });
       if (!mounted.current) { input.getTracks().forEach(track => track.stop()); return; }
@@ -29,16 +31,17 @@ export function useVoiceRecorder(onRecorded: (blob: Blob) => void) {
       recorder.current = instance;
       const chunks: Blob[] = [];
       instance.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
-      instance.onstop = () => { if (clockTimer.current) clearInterval(clockTimer.current); if (timer.current) clearTimeout(timer.current); input.getTracks().forEach(track => track.stop()); if (!mounted.current) return; setRecording(false); setRecorded(true); if (chunks.length) onRecorded(new Blob(chunks, { type: instance.mimeType })); };
+      instance.onstop = () => { if (clockTimer.current) clearInterval(clockTimer.current); if (timer.current) clearTimeout(timer.current); input.getTracks().forEach(track => track.stop()); if (!mounted.current) return; setRecording(false); setRecorded(chunks.length > 0); if (chunks.length) onRecorded(new Blob(chunks, { type: instance.mimeType })); else setError("没有录到声音，请检查麦克风后重试。"); };
       instance.start(); setElapsed(0); setRecorded(false); setRecording(true);
       const started = performance.now();
       clockTimer.current = setInterval(() => setElapsed(Math.min(10, (performance.now() - started) / 1000)), 100);
       timer.current = setTimeout(() => { if (instance.state === "recording") instance.stop(); }, 10000);
-    } catch { stream.current?.getTracks().forEach(track => track.stop()); if (mounted.current) setRecorded(false); }
-    finally { opening.current = false; }
+    } catch { stream.current?.getTracks().forEach(track => track.stop()); if (mounted.current) { setRecorded(false); setError("无法使用麦克风，请检查浏览器权限和设备后重试。"); } }
+    finally { opening.current = false; if (mounted.current) setOpeningMic(false); }
   }
 
-  return { elapsed, recorded, recording, record };
+  function reset() { setElapsed(0); setRecorded(false); setError(""); }
+  return { elapsed, recorded, recording, openingMic, error, record, reset };
 }
 
 export function VoiceRecorderGuide({ recording, recorded, elapsed }: { recording: boolean; recorded: boolean; elapsed: number }) {

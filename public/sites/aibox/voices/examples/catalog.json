@@ -1,6 +1,15 @@
 [
   {
     "category": "人气推荐",
+    "name": "刘亦菲",
+    "avatar": "/sites/aibox/voices/dramas/人气推荐/刘亦菲.webp",
+    "sample": "/sites/aibox/voices/dramas/人气推荐/刘亦菲.wav",
+    "text": "你好，欢迎来到我的声音世界。愿每一个平凡的日子，都有值得期待的惊喜。",
+    "audio": "/sites/aibox/voices/dramas/人气推荐/刘亦菲.wav",
+    "previewLabel": "音色样本试听"
+  },
+  {
+    "category": "人气推荐",
     "name": "周杰伦",
     "avatar": "/sites/aibox/voices/dramas/人气推荐/周杰伦.webp",
     "sample": "/sites/aibox/voices/dramas/人气推荐/周杰伦.wav",

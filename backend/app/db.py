@@ -16,6 +16,15 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
+class VoiceWork(Base):
+    __tablename__ = "voice_works"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    text: Mapped[str] = mapped_column(Text)
+    voice_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    path: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
 class Upload(Base):
     __tablename__ = 'uploads'
     __table_args__ = (Index('uq_uploads_user_sha256', 'user_id', 'sha256', unique=True),)
@@ -23,6 +32,7 @@ class Upload(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), index=True)
     path: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(50))
+    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

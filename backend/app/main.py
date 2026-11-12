@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from .credits import CreditPricingError, locked_wallet, refund_task, task_credit_cost, today
 from .config import settings
-from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, engine
+from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, VoiceWork, engine
 from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
 from .output_storage import local_output
 
@@ -264,7 +264,7 @@ async def upload_audio(file: UploadFile = File(...), user: User = Depends(curren
     upload_id = str(uuid.uuid4())
     path = directory / (upload_id + ext)
     path.write_bytes(data)
-    row = Upload(id=upload_id, user_id=user.id, path=path.name, content_type=content_type, sha256=digest)
+    row = Upload(id=upload_id, user_id=user.id, path=path.name, content_type=content_type, sha256=digest, name=(file.filename or "")[:100] or None)
     session.add(row)
     try:
         session.commit()
@@ -327,7 +327,7 @@ def import_example_asset(data: ExampleAssetInput, user: User = Depends(current_u
 def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'audio', 'all'] = 'image'):
     media_filter = or_(Upload.content_type.like('image/%'), Upload.content_type.like('video/%'), Upload.content_type.like('audio/%')) if kind == 'all' else Upload.content_type.like(f'{kind}/%')
     rows = session.scalars(select(Upload).where(Upload.user_id == user.id, media_filter).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
-    return [{'id': row.id, 'content_type': row.content_type, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
+    return [{'id': row.id, 'content_type': row.content_type, 'name': row.name, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
 
 @app.post('/api/uploads/video', status_code=201)
 async def upload_video(file: UploadFile = File(...), user: User = Depends(current_user), session: DBSession = Depends(db)):
@@ -672,10 +672,13 @@ async def output(task_id: str, index: int, request: Request, download: bool = Fa
 
 
 @app.post('/api/voice/clone')
-async def clone_voice(text: str = Form(...), audio: UploadFile = File(...), user: User = Depends(current_user)):
+async def clone_voice(text: str = Form(...), audio: UploadFile = File(...), voice_name: str = Form(""), user: User = Depends(current_user), session: DBSession = Depends(db)):
     text = text.strip()
     if not text or len(text) > 2000:
         raise HTTPException(400, '请输入不超过 2000 字的文本')
+    voice_name = voice_name.strip()
+    if len(voice_name) > 100:
+        raise HTTPException(400, '音色名称不能超过 100 个字符')
     data = await audio.read(3 * 1024 * 1024 + 1)
     if not data or len(data) > 3 * 1024 * 1024:
         raise HTTPException(400, '音频不能为空且不能超过 3 MB')
@@ -694,6 +697,43 @@ async def clone_voice(text: str = Form(...), audio: UploadFile = File(...), user
             result = await client.post(cfg.tts_api_url, data={'text': text, 'emo_control_method': '2'}, files={'audio': (filename, data, mime)})
         if result.status_code != 200 or not result.content.startswith(b'RIFF') or result.content[8:12] != b'WAVE':
             raise HTTPException(502, '声音生成服务返回异常，请稍后重试')
+        work_id = str(uuid.uuid4())
+        path = cfg.path(cfg.upload_dir) / f'voice-work-{work_id}.wav'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(result.content)
+        try:
+            session.add(VoiceWork(id=work_id, user_id=user.id, text=text, voice_name=voice_name or None, path=path.name))
+            session.commit()
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
         return Response(result.content, media_type='audio/wav', headers={'Cache-Control': 'no-store'})
     except httpx.HTTPError:
         raise HTTPException(502, '声音生成服务暂时不可用，请稍后重试')
+
+
+@app.get('/api/voice/works')
+def voice_works(user: User = Depends(current_user), session: DBSession = Depends(db)):
+    rows = session.scalars(select(VoiceWork).where(VoiceWork.user_id == user.id).order_by(VoiceWork.created_at.desc(), VoiceWork.id.desc()).limit(100)).all()
+    return [{'id': row.id, 'text': row.text, 'voice_name': row.voice_name, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/voice/works/{row.id}/content'} for row in rows]
+
+@app.get('/api/voice/works/{work_id}/content')
+def voice_work_content(work_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    row = session.get(VoiceWork, work_id)
+    if not row or row.user_id != user.id:
+        raise HTTPException(404, '作品不存在')
+    path = cfg.path(cfg.upload_dir) / Path(row.path).name
+    if not path.is_file():
+        raise HTTPException(404, '作品文件不存在')
+    return FileResponse(path, media_type='audio/wav', headers={'Cache-Control': 'private, no-store'})
+
+@app.delete('/api/voice/works/{work_id}')
+def delete_voice_work(work_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    row = session.get(VoiceWork, work_id)
+    if not row or row.user_id != user.id:
+        raise HTTPException(404, '作品不存在')
+    path = cfg.path(cfg.upload_dir) / Path(row.path).name
+    session.delete(row)
+    session.commit()
+    path.unlink(missing_ok=True)
+    return {'ok': True}
