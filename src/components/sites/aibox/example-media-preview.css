@@ -1,0 +1,5 @@
+.example-media-reference { display: flex; align-items: center; gap: 9px; color: #a6b5b7; font-size: 12px; }
+.example-media-thumb { position: relative; flex: 0 0 78px; width: 78px; height: 78px; overflow: hidden; border: 1px solid #53686a; border-radius: 9px; background: #263437; cursor: zoom-in; }
+.example-media-thumb:focus-visible { outline: 2px solid #80e6e1; outline-offset: 3px; }
+.example-media-thumb img, .example-media-thumb video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.example-media-play { position: absolute; right: 5px; bottom: 5px; display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: #101719cc; color: white; pointer-events: none; }

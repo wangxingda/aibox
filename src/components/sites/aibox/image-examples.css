@@ -11,7 +11,6 @@
 .image-example-label { color: #a6b5b7; font-size: 12px; }
 .image-example-info > p { display: -webkit-box; margin: 8px 0 14px; overflow: hidden; color: #d2dedf; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 7; }
 .image-example-input { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; color: #a6b5b7; font-size: 12px; }
-.image-example-input img { width: 42px; height: 42px; border-radius: 7px; object-fit: cover; }
 .workspace .image-example-apply { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; margin-top: auto; padding: 0 16px; border: 0; border-radius: 9px; background: linear-gradient(100deg,#99ebd9,#65cff2); color: #102425; font-weight: 700; cursor: pointer; }
 .image-example-list { display: flex; gap: 10px; margin-top: 14px; overflow-x: auto; }
 .workspace .image-example-list button { position: relative; flex: 0 0 112px; height: 92px; overflow: hidden; border: 2px solid transparent; border-radius: 10px; padding: 0; background: #111; color: white; cursor: pointer; }

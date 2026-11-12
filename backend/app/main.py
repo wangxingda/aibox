@@ -2,6 +2,7 @@ import io
 import asyncio
 import hashlib
 import re
+import shutil
 import json
 import os
 import subprocess
@@ -25,6 +26,7 @@ from sqlalchemy import case, delete, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
+from .credits import CreditPricingError, locked_wallet, refund_task, task_credit_cost, today
 from .config import settings
 from .db import Base, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, engine
 from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
@@ -86,7 +88,7 @@ class TaskInput(BaseModel):
     video_upload_id: str | None = None
     quality: Literal['540P', '720P', '2K', 'auto'] = '540P'
     ratio: Literal['16:9', '9:16', '1:1', 'auto'] = '16:9'
-    duration: Literal['5s', '10s'] = '5s'
+    duration: Literal['5s', '10s', '15s'] = '5s'
 
 def redact_service_address(message: str | None) -> str | None:
     if not message:
@@ -97,8 +99,17 @@ def redact_service_address(message: str | None) -> str | None:
             message = message.replace(value, '[生成服务]')
     return message
 
+def public_task_error(message: str | None, status: str) -> str | None:
+    if not message:
+        return None
+    if status == 'failed':
+        return '生成失败，请稍后重试。'
+    if status == 'unknown':
+        return '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。'
+    return redact_service_address(message)
+
 def serialize(task: Task) -> dict:
-    return {'id': task.id, 'kind': task.kind, 'model': task.model, 'prompt': task.prompt, 'upload_id': task.upload_id, 'status': task.status, 'progress': task.progress, 'options': task.options, 'error': redact_service_address(task.error), 'created_at': task.created_at.isoformat() + 'Z', 'updated_at': task.updated_at.isoformat() + 'Z', 'outputs': [{'url': f'/api/tasks/{task.id}/outputs/{i}'} for i in range(len(task.outputs or []))]}
+    return {'id': task.id, 'kind': task.kind, 'model': task.model, 'prompt': task.prompt, 'upload_id': task.upload_id, 'status': task.status, 'progress': task.progress, 'options': task.options, 'error': public_task_error(task.error, task.status), 'created_at': task.created_at.isoformat() + 'Z', 'updated_at': task.updated_at.isoformat() + 'Z', 'outputs': [{'url': f'/api/tasks/{task.id}/outputs/{i}'} for i in range(len(task.outputs or []))]}
 
 def cache_task(task: Task):
     try:
@@ -144,6 +155,24 @@ def logout(response: Response):
 @app.get('/api/auth/me')
 def me(user: User = Depends(current_user)):
     return {'id': user.id, 'email': user.email}
+
+@app.get('/api/credits')
+def credit_balance(user: User = Depends(current_user), session: DBSession = Depends(db)):
+    wallet = locked_wallet(session, user.id)
+    result = {'balance': wallet.balance if wallet.day == today() else 0, 'claimed': wallet.day == today()}
+    session.commit()
+    return result
+
+@app.post('/api/credits/claim')
+def claim_credits(user: User = Depends(current_user), session: DBSession = Depends(db)):
+    wallet = locked_wallet(session, user.id)
+    if wallet.day != today():
+        wallet.day = today()
+        wallet.balance = 1000 + wallet.pending_refund
+        wallet.pending_refund = 0
+    result = {'balance': wallet.balance, 'claimed': True}
+    session.commit()
+    return result
 
 @app.get('/api/models')
 def models():
@@ -195,6 +224,48 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(curren
         path.unlink(missing_ok=True)
         raise
     return {'id': upload_id, 'deduplicated': False}
+
+class ExampleAssetInput(BaseModel):
+    filename: str
+    collection: Literal['examples', 'templates'] = 'examples'
+
+@app.post('/api/example-assets', status_code=201)
+def import_example_asset(data: ExampleAssetInput, user: User = Depends(current_user), session: DBSession = Depends(db)):
+    pattern = r'(?:reference|replacement|motion)-[1-9][0-9]*-input\.(?:jpg|png|mp4)' if data.collection == 'examples' else r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-input\.(?:jpg|mp4)'
+    if not re.fullmatch(pattern, data.filename):
+        raise HTTPException(400, '示例素材无效')
+    root = cfg.path(cfg.example_dir if data.collection == 'examples' else cfg.template_dir).resolve()
+    source = (root / data.filename).resolve()
+    if not source.is_relative_to(root) or not source.is_file():
+        raise HTTPException(404, '示例素材不存在')
+    digest = hashlib.sha256()
+    with source.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    sha = digest.hexdigest()
+    existing = session.scalar(select(Upload).where(Upload.user_id == user.id, Upload.sha256 == sha))
+    if existing:
+        return {'id': existing.id}
+    suffix = source.suffix.lower()
+    content_type = {'.jpg': 'image/jpeg', '.png': 'image/png', '.mp4': 'video/mp4'}[suffix]
+    upload_id = str(uuid.uuid4())
+    directory = cfg.path(cfg.upload_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    destination = directory / (upload_id + suffix)
+    try:
+        shutil.copyfile(source, destination)
+        session.add(Upload(id=upload_id, user_id=user.id, path=destination.name, content_type=content_type, sha256=sha))
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        destination.unlink(missing_ok=True)
+        existing = session.scalar(select(Upload).where(Upload.user_id == user.id, Upload.sha256 == sha))
+        if existing: return {'id': existing.id}
+        raise
+    except Exception:
+        destination.unlink(missing_ok=True)
+        raise
+    return {'id': upload_id}
 
 @app.get('/api/uploads')
 def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'all'] = 'image'):
@@ -284,6 +355,24 @@ def delete_upload(upload_id: str, user: User = Depends(current_user), session: D
     path.unlink(missing_ok=True)
     return {'deleted': True}
 
+@app.get('/api/credits/quote')
+def credit_quote(model: str, kind: str, duration: str = '', video_upload_id: str | None = None,
+                 user: User = Depends(current_user), session: DBSession = Depends(db)):
+    frames = None
+    if video_upload_id:
+        upload = session.get(Upload, video_upload_id)
+        if not upload or upload.user_id != user.id or not upload.content_type.startswith('video/'):
+            raise HTTPException(404, '视频素材不存在')
+        try:
+            probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-of', 'json', str(cfg.path(cfg.upload_dir) / Path(upload.path).name)], capture_output=True, timeout=120, check=True)
+            frames = int(json.loads(probe.stdout)['streams'][0]['nb_read_frames'])
+        except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError, IndexError, OSError):
+            raise HTTPException(422, '无法读取驱动视频帧数')
+    try:
+        return {'cost': task_credit_cost(model, kind, duration, frames)}
+    except CreditPricingError as exc:
+        raise HTTPException(422, str(exc))
+
 @app.post('/api/tasks', status_code=202)
 def create_task(data: TaskInput, user: User = Depends(current_user), session: DBSession = Depends(db), idempotency_key: str | None = Header(default=None, alias='Idempotency-Key')):
     prompt = data.prompt.strip()
@@ -321,6 +410,7 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
     if data.mode == 'text-to-video' and (data.upload_id or data.second_upload_id or data.video_upload_id):
         raise HTTPException(422, '文生视频仅支持文字提示词')
     options = {'mode': data.mode, 'quality': data.quality, 'ratio': data.ratio, 'duration': data.duration, 'second_upload_id': data.second_upload_id, 'video_upload_id': data.video_upload_id, 'output_nodes': model_config.get('output_nodes')}
+    frame_count = None
     try:
         workflow = build_workflow(data.model, data.kind, prompt, options, '__INPUT_IMAGE_1__' if data.upload_id else None, '__INPUT_IMAGE_2__' if data.second_upload_id else None, '__INPUT_VIDEO__' if data.video_upload_id else None)
         if data.video_upload_id and data.model in ('Wan SCAIL2 角色替换', 'Wan Animate2 动作迁移'):
@@ -336,8 +426,22 @@ def create_task(data: TaskInput, user: User = Depends(current_user), session: DB
             workflow = extend_driving_video(workflow, data.model, frame_count)
     except WorkflowError as exc:
         raise HTTPException(422, str(exc))
+    try:
+        price = task_credit_cost(data.model, data.kind, data.duration, frame_count)
+    except CreditPricingError as exc:
+        raise HTTPException(422, str(exc))
+    wallet = locked_wallet(session, user.id)
+    if idempotency_key:
+        existing = previous_request()
+        if existing:
+            return serialize(existing)
+    if wallet.day != today() or wallet.balance < price:
+        raise HTTPException(402, '积分不足，请先领取每日积分或调整生成参数。')
+    wallet.balance -= price
     task = Task(id=str(uuid.uuid4()), user_id=user.id, kind=data.kind, model=data.model, prompt=prompt, upload_id=data.upload_id, options=options, status='queued', progress=0, outputs=[])
     session.add(task)
+    from .db import CreditCharge
+    session.add(CreditCharge(task_id=task.id, user_id=user.id, day=today(), amount=price, refunded=False))
     session.flush()
     for position, upload_id in enumerate((data.upload_id, data.second_upload_id, data.video_upload_id)):
         if upload_id:
@@ -365,7 +469,26 @@ def list_tasks(user: User = Depends(current_user), session: DBSession = Depends(
     if kind is not None:
         query = query.where(Task.kind == kind)
     rows = session.scalars(query.order_by(Task.created_at.desc(), Task.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
-    return [serialize(row) for row in rows]
+    pending = {}
+    if any(row.status == 'running' for row in rows):
+        try:
+            headers = {'Authorization': f'Bearer {cfg.comfyui_token}'} if cfg.comfyui_token else {}
+            response = httpx.get(cfg.comfyui_url.rstrip('/') + '/queue', headers=headers, timeout=2)
+            response.raise_for_status()
+            queue = response.json()
+            running = queue.get('queue_running', [])
+            waiting = sorted(queue.get('queue_pending', []), key=lambda item: item[0])
+            pending = {item[1]: len(running) + index for index, item in enumerate(waiting) if len(item) > 1}
+        except (httpx.HTTPError, ValueError, TypeError, KeyError, IndexError):
+            pass
+    result = []
+    for row in rows:
+        item = serialize(row)
+        if row.status == 'running' and row.comfy_prompt_id in pending:
+            item['status'] = 'comfy_queued'
+            item['queue_ahead'] = pending[row.comfy_prompt_id]
+        result.append(item)
+    return result
 
 @app.get('/api/tasks/{task_id}')
 def get_task(task_id: str, user: User = Depends(current_user), session: DBSession = Depends(db)):
@@ -379,7 +502,7 @@ def get_task(task_id: str, user: User = Depends(current_user), session: DBSessio
                 and snapshot.get('progress') == task.progress
                 and snapshot.get('error') == task.error
                 and len(snapshot.get('outputs', [])) == len(task.outputs or [])):
-                snapshot['error'] = redact_service_address(snapshot.get('error'))
+                snapshot['error'] = public_task_error(task.error, task.status)
                 return snapshot
     except (redis.RedisError, ValueError):
         pass
@@ -405,6 +528,7 @@ def cancel_task(task_id: str, user: User = Depends(current_user), session: DBSes
                 raise HTTPException(409, '生成服务未确认取消，任务可能已结束，请稍后刷新。')
         except (httpx.HTTPError, ValueError, TypeError):
             raise HTTPException(502, '无法确认生成服务已取消任务，请稍后重试。')
+    refund_task(session, task)
     for table in (TaskInputAsset, TaskOutput, TaskEvent, TaskRequest, TaskWorkflowSnapshot):
         session.execute(delete(table).where(table.task_id == task_id))
     session.delete(task)
@@ -420,8 +544,8 @@ def delete_task(task_id: str, user: User = Depends(current_user), session: DBSes
     task = session.scalar(select(Task).where(Task.id == task_id, Task.user_id == user.id).with_for_update())
     if not task:
         raise HTTPException(404, '任务不存在')
-    if task.status != 'completed':
-        raise HTTPException(409, '只能删除已完成的任务')
+    if task.status not in ('completed', 'failed', 'unknown'):
+        raise HTTPException(409, '只能删除已结束或待确认的任务')
     for table in (TaskInputAsset, TaskOutput, TaskEvent, TaskRequest, TaskWorkflowSnapshot):
         session.execute(delete(table).where(table.task_id == task_id))
     session.delete(task)
@@ -437,7 +561,7 @@ def task_events(task_id: str, user: User = Depends(current_user), session: DBSes
     own_task(session, user, task_id)
     order = case({'queued': 0, 'submitting': 1, 'running': 2, 'completed': 3, 'failed': 3, 'unknown': 3}, value=TaskEvent.status, else_=4)
     events = session.scalars(select(TaskEvent).where(TaskEvent.task_id == task_id).order_by(TaskEvent.created_at, order, TaskEvent.id)).all()
-    return [{'status': event.status, 'message': redact_service_address(event.message), 'created_at': event.created_at.isoformat() + 'Z'} for event in events]
+    return [{'status': event.status, 'message': public_task_error(event.message, event.status), 'created_at': event.created_at.isoformat() + 'Z'} for event in events]
 
 @app.get('/api/tasks/{task_id}/outputs/{index}')
 async def output(task_id: str, index: int, request: Request, download: bool = False, user: User = Depends(current_user), session: DBSession = Depends(db)):

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     workflow_config: str = 'workflows/registry.json'
     upload_dir: str = 'storage/uploads'
+    example_dir: str = '../public/sites/aibox/video-examples'
+    template_dir: str = '../public/sites/aibox/templates'
     task_timeout_seconds: int = 3600
     session_hours: int = 24
 

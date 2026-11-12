@@ -31,6 +31,8 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://aibox:${MYSQL_PASSWORD}@mysql:3306/aibox?charset=utf8mb4
       REDIS_URL: redis://redis:6379/0
+      EXAMPLE_DIR: /app/example-assets
+      TEMPLATE_DIR: /app/template-assets
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
       COMFYUI_URL: ${COMFYUI_URL:?Set COMFYUI_URL}
       COMFYUI_TOKEN: ${COMFYUI_TOKEN:-}
@@ -38,6 +40,8 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     volumes:
       - upload_data:/app/storage/uploads
+      - ../public/sites/aibox/video-examples:/app/example-assets:ro
+      - ../public/sites/aibox/templates:/app/template-assets:ro
     depends_on:
       mysql: {condition: service_healthy}
       redis: {condition: service_healthy}

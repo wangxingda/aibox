@@ -14,6 +14,7 @@ import redis
 import websocket
 from sqlalchemy import select
 
+from .credits import refund_task
 from .config import settings
 from .db import Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskWorkflowSnapshot, Upload, utcnow
 from .main import cache_task
@@ -56,6 +57,8 @@ def update(task_id, status, error=None, outputs=None, expected=None, stale_befor
             return False
         if task.status == status:
             return False
+        if status == 'failed':
+            refund_task(session, task)
         task.status = status
         task.error = error
         task.updated_at = utcnow()
@@ -268,26 +271,26 @@ def submit(task_id):
                     log.info('Could not open ComfyUI progress stream before submit for task %s: %s', task_id, exc)
                 result = client.post(base + '/prompt', json={'prompt': workflow, 'client_id': task_id, 'prompt_id': data['prompt_id']})
             except httpx.RequestError:
-                update(task_id, 'unknown', '提交结果不确定，请联系管理员核对 ComfyUI 队列。', expected={'submitting'})
+                update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'})
                 return
             if result.status_code >= 500:
-                update(task_id, 'unknown', '生成服务返回服务器错误，请联系管理员核对队列。', expected={'submitting'})
+                update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'})
                 return
             result.raise_for_status()
             try:
                 response_prompt_id = result.json().get('prompt_id')
             except (ValueError, AttributeError):
-                update(task_id, 'unknown', '生成服务响应无法解析，请联系管理员核对队列。', expected={'submitting'})
+                update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'})
                 return
             if response_prompt_id != data['prompt_id']:
-                update(task_id, 'unknown', '生成服务返回了不匹配的任务编号，请联系管理员核对。', expected={'submitting'})
+                update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'})
                 return
             if update(task_id, 'running', expected={'submitting'}):
                 ensure_progress_monitor(task_id, data['prompt_id'], len(workflow), monitor_socket)
                 monitor_socket = None
     except (httpx.HTTPError, OSError, ValueError, KeyError, WorkflowError):
         log.exception('Task preparation/submission failed: %s', task_id)
-        update(task_id, 'failed', '任务提交失败，请检查工作流及生成服务配置。', expected={'submitting'})
+        update(task_id, 'failed', '生成失败，请稍后重试。', expected={'submitting'})
     finally:
         if monitor_socket is not None:
             try:
@@ -318,15 +321,15 @@ def poll_running():
                 history = response.json().get(prompt_id)
             if not history:
                 if timed_out:
-                    update(task_id, 'unknown', '任务等待超时，请联系管理员核对生成服务。', expected={'running'})
+                    update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'running'})
                 continue
             status = history.get('status', {})
             if status.get('status_str') == 'error':
-                update(task_id, 'failed', 'ComfyUI 工作流执行失败，请检查服务端日志。', expected={'running'})
+                update(task_id, 'failed', '生成失败，请稍后重试。', expected={'running'})
                 continue
             if not status.get('completed'):
                 if timed_out:
-                    update(task_id, 'unknown', '任务等待超时，请联系管理员核对生成服务。', expected={'running'})
+                    update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'running'})
                 continue
             outputs = []
             selected_nodes = (options or {}).get('output_nodes')
@@ -342,18 +345,18 @@ def poll_running():
                     persist_output(task_id, index, item)
                 update(task_id, 'completed', outputs=outputs, expected={'running'})
             else:
-                update(task_id, 'failed', '工作流已完成，但没有可读取的图片或视频输出。', expected={'running'})
+                update(task_id, 'failed', '生成失败，请稍后重试。', expected={'running'})
         except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError):
             log.warning('Cannot poll ComfyUI task %s', task_id, exc_info=True)
             if timed_out:
-                update(task_id, 'unknown', '无法确认超时任务状态，请联系管理员核对生成服务。', expected={'running'})
+                update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'running'})
 
 def recover_uncertain():
     cutoff = utcnow() - timedelta(seconds=180)
     with Session() as session:
         ids = session.scalars(select(Task.id).where(Task.status == 'submitting', Task.updated_at < cutoff)).all()
     for task_id in ids:
-        update(task_id, 'unknown', '工作进程在提交时中断，请联系管理员核对 ComfyUI 队列。', expected={'submitting'}, stale_before=cutoff)
+        update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'}, stale_before=cutoff)
 
 def main():
     logging.basicConfig(level=logging.INFO)

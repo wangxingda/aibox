@@ -90,3 +90,18 @@ class SchemaMigration(Base):
 
 engine = create_engine(settings().database_url, pool_pre_ping=True)
 Session = sessionmaker(bind=engine, expire_on_commit=False)
+
+class CreditWallet(Base):
+    __tablename__ = 'credit_wallets'
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    day: Mapped[str] = mapped_column(String(10), default='')
+    balance: Mapped[int] = mapped_column(Integer, default=0)
+    pending_refund: Mapped[int] = mapped_column(Integer, default=0)
+
+class CreditCharge(Base):
+    __tablename__ = 'credit_charges'
+    task_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'))
+    day: Mapped[str] = mapped_column(String(10))
+    amount: Mapped[int] = mapped_column(Integer)
+    refunded: Mapped[bool] = mapped_column(default=False)

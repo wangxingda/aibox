@@ -57,7 +57,7 @@
     "requires_image": false,
     "requires_second_image": false,
     "requires_prompt": true,
-    "max_prompt_length": 3000,
+    "max_prompt_length": 8000,
     "fixed_resolution": true,
     "resolution_label": "0.98 MP · 工作流固定",
     "inputs": {
@@ -80,7 +80,8 @@
       },
       "duration": {
         "5s": 5,
-        "10s": 10
+        "10s": 10,
+        "15s": 15
       }
     },
     "modes": [

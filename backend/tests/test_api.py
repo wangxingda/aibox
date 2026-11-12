@@ -20,7 +20,13 @@ from app.main import app
 from app.workflows import registry
 
 @pytest.fixture(autouse=True)
-def setup(tmp_path):
+def setup(tmp_path, monkeypatch):
+    import app.main as main
+    actual_price = main.task_credit_cost
+    def test_price(model, *args):
+        if model in ("demo-image", "MiniMax H3 参考图转视频"): return 100
+        return actual_price(model, *args)
+    monkeypatch.setattr(main, "task_credit_cost", test_price)
     Base.metadata.drop_all(engine)
     path = Path(settings().workflow_config)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -36,7 +42,10 @@ def client():
         yield client
 
 def register(client, email='test@example.com'):
-    return client.post('/api/auth/register', json={'email': email, 'password': 'password123'})
+    result = client.post('/api/auth/register', json={'email': email, 'password': 'password123'})
+    if result.status_code == 201:
+        client.post('/api/credits/claim')
+    return result
 
 def test_auth_and_task_validation(client):
     assert client.get('/api/auth/me').status_code == 401
@@ -69,6 +78,7 @@ def test_upload_and_ownership(client):
 
 def test_worker_submits_once_and_polls(client, monkeypatch):
     from app import worker
+    monkeypatch.setattr(worker, "persist_output", lambda *args: None)
     register(client)
     task = client.post('/api/tasks', json={'kind':'image','model':'demo-image','prompt':'draw'}).json()
     calls = []
@@ -342,6 +352,7 @@ def test_qwen_text_to_image_workflow_has_correct_prompt_ratio_seed(client):
 def test_expired_poll_checks_history_before_marking_unknown(client, monkeypatch):
     from datetime import timedelta
     from app import worker
+    monkeypatch.setattr(worker, 'persist_output', lambda *args: None)
     from app.db import Session, Task, utcnow
     register(client)
     task = client.post('/api/tasks', json={'kind':'image','model':'demo-image','prompt':'test'}).json()
@@ -677,3 +688,87 @@ def test_cancel_tasks(client, monkeypatch):
     assert client.post(f"/api/tasks/{task['id']}/cancel").status_code == 200
     assert '/api/jobs/' in calls[0] and calls[0].endswith('/cancel')
     assert client.get(f"/api/tasks/{task['id']}").status_code == 404
+
+
+def test_credit_claim_charge_idempotency_and_refund(client, monkeypatch):
+    import app.main as main
+    from app import worker
+    monkeypatch.setattr(main, 'task_credit_cost', lambda *args: 100)
+    client.post('/api/auth/register', json={'email': 'test@example.com', 'password': 'password123'})
+    assert client.get('/api/credits').json() == {'balance': 0, 'claimed': False}
+    payload = {'kind': 'image', 'model': 'demo-image', 'prompt': 'draw'}
+    assert client.post('/api/tasks', json=payload).status_code == 402
+    assert client.post('/api/credits/claim').json()['balance'] == 1000
+    assert client.post('/api/credits/claim').json()['balance'] == 1000
+    headers = {'Idempotency-Key': 'credit-test'}
+    result = client.post('/api/tasks', json=payload, headers=headers)
+    assert result.status_code == 202
+    assert client.post('/api/tasks', json=payload, headers=headers).json()['id'] == result.json()['id']
+    assert client.get('/api/credits').json()['balance'] == 900
+    assert client.post('/api/tasks/' + result.json()['id'] + '/cancel').status_code == 200
+    assert client.get('/api/credits').json()['balance'] == 1000
+    task = client.post('/api/tasks', json=payload).json()
+    assert worker.claim() == task['id']
+    assert worker.update(task['id'], 'failed', expected={'submitting'})
+    assert client.get('/api/credits').json()['balance'] == 1000
+
+
+def test_example_asset_is_owned_deduplicated_and_restricted(client, tmp_path, monkeypatch):
+    import app.main as main
+    register(client)
+    monkeypatch.setattr(main.cfg, 'example_dir', str(tmp_path))
+    (tmp_path / 'motion-1-input.mp4').write_bytes(b'known system asset')
+    first = client.post('/api/example-assets', json={'filename': 'motion-1-input.mp4'})
+    assert first.status_code == 201
+    assert client.post('/api/example-assets', json={'filename': 'motion-1-input.mp4'}).json()['id'] == first.json()['id']
+    assert client.post('/api/example-assets', json={'filename': '../motion-1-input.mp4'}).status_code == 400
+    client.post('/api/auth/logout')
+    register(client, 'another@example.com')
+    assert client.get('/api/uploads/' + first.json()['id'] + '/content').status_code == 404
+
+
+def test_running_task_queue_position_and_terminal_deletion(client, monkeypatch):
+    import httpx
+    import app.main as main
+    from app import worker
+    from app.db import Session, Task
+    register(client)
+    task = client.post('/api/tasks', json={'kind':'image','model':'demo-image','prompt':'draw'}).json()
+    worker.claim()
+    assert worker.update(task['id'], 'running', expected={'submitting'})
+    with Session() as session:
+        prompt_id = session.get(Task, task['id']).comfy_prompt_id
+    def queue(url, **kwargs):
+        return httpx.Response(200, json={'queue_running': [[0,'other']], 'queue_pending': [[1,prompt_id]]}, request=httpx.Request('GET', url))
+    monkeypatch.setattr(main.httpx, 'get', queue)
+    listed = client.get('/api/tasks').json()[0]
+    assert listed['status'] == 'comfy_queued' and listed['queue_ahead'] == 1
+    assert worker.update(task['id'], 'unknown', expected={'running'})
+    assert client.delete('/api/tasks/' + task['id']).status_code == 200
+
+
+def test_old_task_errors_do_not_expose_internal_details(client):
+    from app import worker
+    register(client)
+    task = client.post('/api/tasks', json={'kind': 'image', 'model': 'demo-image', 'prompt': 'draw'}).json()
+    assert worker.claim() == task['id']
+    assert worker.update(task['id'], 'unknown', '请联系管理员核对 ComfyUI 队列', expected={'submitting'})
+    detail = client.get('/api/tasks/' + task['id']).json()
+    assert detail['error'] == '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。'
+    assert 'ComfyUI' not in str(client.get('/api/tasks').json())
+    assert 'ComfyUI' not in str(client.get('/api/tasks/' + task['id'] + '/events').json())
+
+
+def test_template_asset_import_is_restricted_and_owned(client, tmp_path, monkeypatch):
+    import app.main as main
+    register(client)
+    monkeypatch.setattr(main.cfg, 'template_dir', str(tmp_path))
+    name = '6f0b5956-1ac2-4dd4-afe7-3e36f4107cd9-input.jpg'
+    (tmp_path / name).write_bytes(b'local template image')
+    response = client.post('/api/example-assets', json={'collection': 'templates', 'filename': name})
+    assert response.status_code == 201
+    assert client.post('/api/example-assets', json={'collection': 'templates', 'filename': name}).json()['id'] == response.json()['id']
+    assert client.post('/api/example-assets', json={'collection': 'templates', 'filename': '../' + name}).status_code == 400
+    client.post('/api/auth/logout')
+    register(client, 'other@example.com')
+    assert client.get('/api/uploads/' + response.json()['id'] + '/content').status_code == 404

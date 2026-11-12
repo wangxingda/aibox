@@ -10,13 +10,30 @@ import "./task-gallery.css";
 const pageSize = 30;
 const statusLabels: Record<string, string> = {
   queued: "排队中",
+  comfy_queued: "排队中",
   submitting: "提交中",
   running: "生成中",
   completed: "已完成",
   failed: "生成失败",
   unknown: "待确认",
 };
-const activeStatuses = new Set(["queued", "submitting", "running"]);
+const activeStatuses = new Set(["queued", "submitting", "running", "comfy_queued"]);
+
+function taskTypeName(task: BackendTask) {
+  const modes: Record<string, string> = {
+    "text-to-image": "文生图", "image-edit": "图片编辑", "image-to-image": "图片编辑",
+    "text-to-video": "文生音视频", "image-to-video": "图生音视频", "refer-to-video": "图生音视频",
+    "character-replacement": "角色替换", "motion-transfer": "动作迁移",
+    "video-to-video": "视频生成", "frame-to-video": "视频生成",
+  };
+  const mode = task.options?.mode;
+  if (mode && modes[mode]) return modes[mode];
+  if (task.model.includes("角色替换")) return "角色替换";
+  if (task.model.includes("动作迁移")) return "动作迁移";
+  if (task.kind === "image") return task.upload_id ? "图片编辑" : "文生图";
+  if (task.kind === "video") return task.upload_id ? "图生音视频" : "视频生成";
+  return "生成任务";
+}
 
 function localTaskTime(value: string) {
   const date = new Date(value);
@@ -112,7 +129,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
     content = <div className="task-gallery">
       <div className="backend-task-list">
         {tasks.map(task => {
-          const taskName = task.model === "Wan SCAIL2 角色替换" ? "角色替换" : task.model;
+          const taskName = taskTypeName(task);
           const isActive = activeStatuses.has(task.status);
           const progress = Math.max(0, Math.min(100, task.progress ?? (task.status === "completed" ? 100 : 0)));
           const createdAt = task.created_at ? localTaskTime(task.created_at) : "";
@@ -125,7 +142,7 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
             <div className={`task-card-preview${isActive ? " is-generating" : ""}`}>
             {isActive ? <div className="task-card-progress" role="status" aria-label={`${statusLabels[task.status] || task.status} ${progress}%`}>
               <LoaderCircle className="task-progress-spinner" size={22} aria-hidden="true" />
-              <div className="task-progress-label"><span>{statusLabels[task.status] || task.status}</span><b>{progress}%</b></div>
+              <div className="task-progress-label"><span>{task.status === "comfy_queued" && task.queue_ahead !== undefined ? `排队中，前方 ${task.queue_ahead} 个任务` : statusLabels[task.status] || task.status}</span><b>{progress}%</b></div>
               <div className="task-progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
                 <span style={{ width: `${progress}%` }} />
               </div>
@@ -136,8 +153,9 @@ export function TaskGallery({ user, authLoading, authError, kind, onAuthRequired
               : <video className="task-card-media task-card-video" key={output.url} src={output.url} controls preload="metadata" />)}
             </div>
             {isActive && <div className="task-card-actions"><button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><X size={16} />{deleting === task.id ? "取消中" : "取消任务"}</button></div>}
-            {task.status === "completed" && <div className="task-card-actions">
+            {["completed", "failed", "unknown"].includes(task.status) && <div className="task-card-actions">
               <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} aria-label="编辑并重新使用任务"><Pencil size={16} />编辑</a>
+              {task.status !== "completed" && <a href={`/${task.kind === "video" ? (task.model === "Wan SCAIL2 角色替换" ? "character-replacement" : task.model === "Wan Animate2 动作迁移" ? "motion-transfer" : task.options?.mode === "text-to-video" ? "text-to-video" : "image-to-video") : task.upload_id ? "image-edit" : "text-to-image"}?edit=${encodeURIComponent(task.id)}`} onClick={event => { if (task.status === "unknown" && !window.confirm("该任务结果尚未确认，请先联系客服核实。重新提交可能重复生成，继续编辑吗？")) event.preventDefault(); }}>重试</a>}
               {task.outputs.map((output, index) => <a href={`${output.url}?download=true`} download key={output.url} aria-label={`下载作品 ${index + 1}`}><Download size={16} />下载{task.outputs.length > 1 ? ` ${index + 1}` : ""}</a>)}
               <button type="button" onClick={() => void deleteTask(task)} disabled={deleting === task.id}><Trash2 size={16} />{deleting === task.id ? "删除中" : "删除"}</button>
             </div>}

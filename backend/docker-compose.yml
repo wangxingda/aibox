@@ -30,11 +30,15 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://aireel:${MYSQL_PASSWORD}@mysql:3306/aireel?charset=utf8mb4
       REDIS_URL: redis://redis:6379/0
+      EXAMPLE_DIR: /app/example-assets
+      TEMPLATE_DIR: /app/template-assets
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       - ./workflows:/app/workflows:ro
       - upload_data:/app/storage/uploads
+      - ../public/sites/aibox/video-examples:/app/example-assets:ro
+      - ../public/sites/aibox/templates:/app/template-assets:ro
     depends_on:
       mysql: {condition: service_healthy}
       redis: {condition: service_healthy}
