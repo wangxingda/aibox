@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     jwt_secret: str = ''
     comfyui_url: str = 'http://127.0.0.1:8188'
     comfyui_token: str = ''
+    tts_api_url: str = ''
     cors_origins: str = 'http://localhost:3000,http://localhost:3001'
     cookie_secure: bool = False
     workflow_config: str = 'workflows/registry.json'

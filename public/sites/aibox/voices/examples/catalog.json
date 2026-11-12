@@ -1,0 +1,50 @@
+[
+  {
+    "category": "人气推荐",
+    "name": "周杰伦",
+    "avatar": "/sites/aibox/voices/dramas/人气推荐/周杰伦.webp",
+    "sample": "/sites/aibox/voices/dramas/人气推荐/周杰伦.wav",
+    "text": "你好，欢迎来到我的声音世界。愿每一个平凡的日子，都有值得期待的惊喜。",
+    "audio": "/sites/aibox/voices/examples/example-1.wav"
+  },
+  {
+    "category": "甄嬛传",
+    "name": "甄嬛",
+    "avatar": "/sites/aibox/voices/dramas/甄嬛传/甄嬛.webp",
+    "sample": "/sites/aibox/voices/dramas/甄嬛传/甄嬛.wav",
+    "text": "故事，从这一刻开始。那些未曾说出口的话，终于有了属于自己的声音。",
+    "audio": "/sites/aibox/voices/examples/example-2.wav"
+  },
+  {
+    "category": "让子弹飞",
+    "name": "张麻子",
+    "avatar": "/sites/aibox/voices/dramas/让子弹飞/张麻子.webp",
+    "sample": "/sites/aibox/voices/dramas/让子弹飞/张麻子.wav",
+    "text": "放慢脚步，听听生活的声音。用一杯茶的时间，给自己片刻宁静。",
+    "audio": "/sites/aibox/voices/examples/example-3.wav"
+  },
+  {
+    "category": "西游记",
+    "name": "孙悟空",
+    "avatar": "/sites/aibox/voices/dramas/西游记/孙悟空.webp",
+    "sample": "/sites/aibox/voices/dramas/西游记/孙悟空.wav",
+    "text": "你好，欢迎来到我的声音世界。愿每一个平凡的日子，都有值得期待的惊喜。",
+    "audio": "/sites/aibox/voices/examples/example-4.wav"
+  },
+  {
+    "category": "琅琊榜",
+    "name": "梅长苏",
+    "avatar": "/sites/aibox/voices/dramas/琅琊榜/梅长苏.webp",
+    "sample": "/sites/aibox/voices/dramas/琅琊榜/梅长苏.wav",
+    "text": "故事，从这一刻开始。那些未曾说出口的话，终于有了属于自己的声音。",
+    "audio": "/sites/aibox/voices/examples/example-5.wav"
+  },
+  {
+    "category": "沉默的荣耀",
+    "name": "吴石",
+    "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/吴石.webp",
+    "sample": "/sites/aibox/voices/dramas/沉默的荣耀/吴石.wav",
+    "text": "放慢脚步，听听生活的声音。用一杯茶的时间，给自己片刻宁静。",
+    "audio": "/sites/aibox/voices/examples/example-6.wav"
+  }
+]

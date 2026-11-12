@@ -790,3 +790,26 @@ def test_retry_directly_creates_one_task_and_charges_once(client):
     client.post('/api/auth/logout')
     register(client, 'retry-other@example.com')
     assert client.post('/api/tasks/' + task['id'] + '/retry', headers=headers).status_code == 404
+def test_audio_asset_permissions(client):
+    import wave
+    data = io.BytesIO()
+    with wave.open(data, 'wb') as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(16000)
+        audio.writeframes(b'\0\0' * 16000)
+    payload = data.getvalue()
+    assert register(client).status_code == 201
+    assert client.post('/api/uploads/audio', files={'file': ('fake.wav', b'RIFFfakeWAVE')}).status_code == 400
+    result = client.post('/api/uploads/audio', files={'file': ('voice.wav', payload)})
+    assert result.status_code == 201
+    uid = result.json()['id']
+    assert client.post('/api/uploads/audio', files={'file': ('voice.wav', payload)}).json() == {'id': uid, 'deduplicated': True}
+    assert len(client.get('/api/uploads?kind=audio').json()) == 1
+    assert client.get('/api/uploads?kind=image').json() == []
+    assert client.get(f'/api/uploads/{uid}/content').content == payload
+    client.post('/api/auth/logout')
+    assert register(client, 'audio-other@example.com').status_code == 201
+    assert client.get('/api/uploads?kind=audio').json() == []
+    assert client.get(f'/api/uploads/{uid}/content').status_code == 404
+    assert client.delete(f'/api/uploads/{uid}').status_code == 404

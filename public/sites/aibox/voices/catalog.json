@@ -1,0 +1,914 @@
+[
+  {
+    "title": "人气推荐",
+    "characters": [
+      {
+        "name": "周杰伦",
+        "actor": "周杰伦",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/周杰伦.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/周杰伦.webp"
+      },
+      {
+        "name": "刘亦菲",
+        "actor": "刘亦菲",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/刘亦菲.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/刘亦菲.webp"
+      },
+      {
+        "name": "赵丽颖",
+        "actor": "赵丽颖",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/赵丽颖.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/赵丽颖.webp"
+      },
+      {
+        "name": "周星驰",
+        "actor": "周星驰",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/周星驰.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/周星驰.webp"
+      },
+      {
+        "name": "小猪佩奇",
+        "actor": "小猪佩奇",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/小猪佩奇.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/小猪佩奇.webp"
+      },
+      {
+        "name": "雷军",
+        "actor": "雷军",
+        "audio": "/sites/aibox/voices/dramas/人气推荐/雷军.wav",
+        "avatar": "/sites/aibox/voices/dramas/人气推荐/雷军.webp"
+      }
+    ]
+  },
+  {
+    "title": "甄嬛传",
+    "characters": [
+      {
+        "name": "甄嬛",
+        "actor": "孙俪",
+        "audio": "/sites/aibox/voices/dramas/甄嬛传/甄嬛.wav",
+        "avatar": "/sites/aibox/voices/dramas/甄嬛传/甄嬛.webp"
+      },
+      {
+        "name": "皇上",
+        "actor": "陈建斌",
+        "audio": "/sites/aibox/voices/dramas/甄嬛传/皇上.wav",
+        "avatar": "/sites/aibox/voices/dramas/甄嬛传/皇上.webp"
+      },
+      {
+        "name": "华妃",
+        "actor": "蒋欣",
+        "audio": "/sites/aibox/voices/dramas/甄嬛传/华妃.wav",
+        "avatar": "/sites/aibox/voices/dramas/甄嬛传/华妃.webp"
+      },
+      {
+        "name": "皇后",
+        "actor": "蔡少芬",
+        "audio": "/sites/aibox/voices/dramas/甄嬛传/皇后.wav",
+        "avatar": "/sites/aibox/voices/dramas/甄嬛传/皇后.webp"
+      },
+      {
+        "name": "安陵容",
+        "actor": "陶昕然",
+        "audio": "/sites/aibox/voices/dramas/甄嬛传/安陵容.wav",
+        "avatar": "/sites/aibox/voices/dramas/甄嬛传/安陵容.webp"
+      }
+    ]
+  },
+  {
+    "title": "让子弹飞",
+    "characters": [
+      {
+        "name": "张麻子",
+        "actor": "姜文",
+        "audio": "/sites/aibox/voices/dramas/让子弹飞/张麻子.wav",
+        "avatar": "/sites/aibox/voices/dramas/让子弹飞/张麻子.webp"
+      },
+      {
+        "name": "黄四郎",
+        "actor": "周润发",
+        "audio": "/sites/aibox/voices/dramas/让子弹飞/黄四郎.wav",
+        "avatar": "/sites/aibox/voices/dramas/让子弹飞/黄四郎.webp"
+      },
+      {
+        "name": "马邦德",
+        "actor": "葛优",
+        "audio": "/sites/aibox/voices/dramas/让子弹飞/马邦德.wav",
+        "avatar": "/sites/aibox/voices/dramas/让子弹飞/马邦德.webp"
+      },
+      {
+        "name": "县长夫人",
+        "actor": "刘嘉玲",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/让子弹飞/县长夫人.webp"
+      }
+    ]
+  },
+  {
+    "title": "西游记",
+    "characters": [
+      {
+        "name": "孙悟空",
+        "actor": "六小龄童",
+        "audio": "/sites/aibox/voices/dramas/西游记/孙悟空.wav",
+        "avatar": "/sites/aibox/voices/dramas/西游记/孙悟空.webp"
+      },
+      {
+        "name": "猪八戒",
+        "actor": "马德华",
+        "audio": "/sites/aibox/voices/dramas/西游记/猪八戒.wav",
+        "avatar": "/sites/aibox/voices/dramas/西游记/猪八戒.webp"
+      },
+      {
+        "name": "唐僧",
+        "actor": "徐少华",
+        "audio": "/sites/aibox/voices/dramas/西游记/唐僧.wav",
+        "avatar": "/sites/aibox/voices/dramas/西游记/唐僧.webp"
+      },
+      {
+        "name": "沙僧",
+        "actor": "闫怀礼",
+        "audio": "/sites/aibox/voices/dramas/西游记/沙僧.wav",
+        "avatar": "/sites/aibox/voices/dramas/西游记/沙僧.webp"
+      }
+    ]
+  },
+  {
+    "title": "琅琊榜",
+    "characters": [
+      {
+        "name": "梅长苏",
+        "actor": "胡歌",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/梅长苏.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/梅长苏.webp"
+      },
+      {
+        "name": "靖王",
+        "actor": "王凯",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/靖王.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/靖王.webp"
+      },
+      {
+        "name": "霓凰",
+        "actor": "刘涛",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/霓凰.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/霓凰.webp"
+      },
+      {
+        "name": "梁帝",
+        "actor": "丁勇岱",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/梁帝.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/梁帝.webp"
+      },
+      {
+        "name": "静妃",
+        "actor": "刘敏涛",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/静妃.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/静妃.webp"
+      },
+      {
+        "name": "景睿",
+        "actor": "程皓枫",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/景睿.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/景睿.webp"
+      },
+      {
+        "name": "莅阳",
+        "actor": "张琰琰",
+        "audio": "/sites/aibox/voices/dramas/琅琊榜/莅阳.wav",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/莅阳.webp"
+      },
+      {
+        "name": "蒙挚",
+        "actor": "陈龙",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/蒙挚.webp"
+      },
+      {
+        "name": "誉王",
+        "actor": "黄维德",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/誉王.webp"
+      },
+      {
+        "name": "宫羽",
+        "actor": "周奇奇",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/琅琊榜/宫羽.webp"
+      }
+    ]
+  },
+  {
+    "title": "沉默的荣耀",
+    "characters": [
+      {
+        "name": "吴石",
+        "actor": "于和伟",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/吴石.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/吴石.webp"
+      },
+      {
+        "name": "朱枫",
+        "actor": "吴越",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/朱枫.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/朱枫.webp"
+      },
+      {
+        "name": "聂曦",
+        "actor": "魏晨",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/聂曦.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/聂曦.webp"
+      },
+      {
+        "name": "谷正文",
+        "actor": "余皑磊",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/谷正文.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/谷正文.webp"
+      },
+      {
+        "name": "毛人凤",
+        "actor": "张晞临",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/毛人凤.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/毛人凤.webp"
+      },
+      {
+        "name": "周至柔",
+        "actor": "傅程鹏",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/周至柔.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/周至柔.webp"
+      },
+      {
+        "name": "蒋经国",
+        "actor": "赵凯",
+        "audio": "/sites/aibox/voices/dramas/沉默的荣耀/蒋经国.wav",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/蒋经国.webp"
+      },
+      {
+        "name": "王碧奎",
+        "actor": "曾黎",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/沉默的荣耀/王碧奎.webp"
+      }
+    ]
+  },
+  {
+    "title": "亮剑",
+    "characters": [
+      {
+        "name": "李云龙",
+        "actor": "李幼斌",
+        "audio": "/sites/aibox/voices/dramas/亮剑/李云龙.wav",
+        "avatar": "/sites/aibox/voices/dramas/亮剑/李云龙.webp"
+      },
+      {
+        "name": "楚云飞",
+        "actor": "张光北",
+        "audio": "/sites/aibox/voices/dramas/亮剑/楚云飞.wav",
+        "avatar": "/sites/aibox/voices/dramas/亮剑/楚云飞.webp"
+      },
+      {
+        "name": "赵刚",
+        "actor": "何政军",
+        "audio": "/sites/aibox/voices/dramas/亮剑/赵刚.wav",
+        "avatar": "/sites/aibox/voices/dramas/亮剑/赵刚.webp"
+      },
+      {
+        "name": "魏和尚",
+        "actor": "张桐",
+        "audio": "/sites/aibox/voices/dramas/亮剑/魏和尚.wav",
+        "avatar": ""
+      },
+      {
+        "name": "孔捷",
+        "actor": "由力",
+        "audio": "/sites/aibox/voices/dramas/亮剑/孔捷.wav",
+        "avatar": "/sites/aibox/voices/dramas/亮剑/孔捷.webp"
+      }
+    ]
+  },
+  {
+    "title": "人民的名义",
+    "characters": [
+      {
+        "name": "侯亮平",
+        "actor": "陆毅",
+        "audio": "/sites/aibox/voices/dramas/人民的名义/侯亮平.wav",
+        "avatar": "/sites/aibox/voices/dramas/人民的名义/侯亮平.webp"
+      },
+      {
+        "name": "李达康",
+        "actor": "吴刚",
+        "audio": "/sites/aibox/voices/dramas/人民的名义/李达康.wav",
+        "avatar": "/sites/aibox/voices/dramas/人民的名义/李达康.webp"
+      },
+      {
+        "name": "沙瑞金",
+        "actor": "张丰毅",
+        "audio": "/sites/aibox/voices/dramas/人民的名义/沙瑞金.wav",
+        "avatar": "/sites/aibox/voices/dramas/人民的名义/沙瑞金.webp"
+      },
+      {
+        "name": "祁同伟",
+        "actor": "许亚军",
+        "audio": "/sites/aibox/voices/dramas/人民的名义/祁同伟.wav",
+        "avatar": "/sites/aibox/voices/dramas/人民的名义/祁同伟.webp"
+      },
+      {
+        "name": "高育良",
+        "actor": "张志坚",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/人民的名义/高育良.webp"
+      }
+    ]
+  },
+  {
+    "title": "伪装者",
+    "characters": [
+      {
+        "name": "明楼",
+        "actor": "靳东",
+        "audio": "/sites/aibox/voices/dramas/伪装者/明楼.wav",
+        "avatar": "/sites/aibox/voices/dramas/伪装者/明楼.webp"
+      },
+      {
+        "name": "明台",
+        "actor": "胡歌",
+        "audio": "/sites/aibox/voices/dramas/伪装者/明台.wav",
+        "avatar": ""
+      },
+      {
+        "name": "明诚",
+        "actor": "王凯",
+        "audio": "/sites/aibox/voices/dramas/伪装者/明诚.wav",
+        "avatar": ""
+      },
+      {
+        "name": "汪曼春",
+        "actor": "王鸥",
+        "audio": "/sites/aibox/voices/dramas/伪装者/汪曼春.wav",
+        "avatar": "/sites/aibox/voices/dramas/伪装者/汪曼春.webp"
+      },
+      {
+        "name": "王天风",
+        "actor": "刘奕君",
+        "audio": "/sites/aibox/voices/dramas/伪装者/王天风.wav",
+        "avatar": "/sites/aibox/voices/dramas/伪装者/王天风.webp"
+      }
+    ]
+  },
+  {
+    "title": "狂飙",
+    "characters": [
+      {
+        "name": "安欣",
+        "actor": "张译",
+        "audio": "/sites/aibox/voices/dramas/狂飙/安欣.wav",
+        "avatar": ""
+      },
+      {
+        "name": "高启强",
+        "actor": "张颂文",
+        "audio": "/sites/aibox/voices/dramas/狂飙/高启强.wav",
+        "avatar": "/sites/aibox/voices/dramas/狂飙/高启强.webp"
+      },
+      {
+        "name": "陈书婷",
+        "actor": "高叶",
+        "audio": "/sites/aibox/voices/dramas/狂飙/陈书婷.wav",
+        "avatar": "/sites/aibox/voices/dramas/狂飙/陈书婷.webp"
+      },
+      {
+        "name": "徐江",
+        "actor": "贾冰",
+        "audio": "/sites/aibox/voices/dramas/狂飙/徐江.wav",
+        "avatar": ""
+      },
+      {
+        "name": "李响",
+        "actor": "李健",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/狂飙/李响.webp"
+      },
+      {
+        "name": "高启盛",
+        "actor": "苏小玎",
+        "audio": "",
+        "avatar": "/sites/aibox/voices/dramas/狂飙/高启盛.webp"
+      }
+    ]
+  },
+  {
+    "title": "悟声",
+    "characters": [
+      {
+        "name": "沈秋絮",
+        "actor": "沈秋絮",
+        "audio": "/sites/aibox/voices/dramas/悟声/沈秋絮.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "若离",
+        "actor": "若离",
+        "audio": "/sites/aibox/voices/dramas/悟声/若离.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "李泽",
+        "actor": "李泽",
+        "audio": "/sites/aibox/voices/dramas/悟声/李泽.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "苏糯糯",
+        "actor": "苏糯糯",
+        "audio": "/sites/aibox/voices/dramas/悟声/苏糯糯.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "爱莉",
+        "actor": "爱莉",
+        "audio": "/sites/aibox/voices/dramas/悟声/爱莉.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "梦桃夭",
+        "actor": "梦桃夭",
+        "audio": "/sites/aibox/voices/dramas/悟声/梦桃夭.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "露比",
+        "actor": "露比",
+        "audio": "/sites/aibox/voices/dramas/悟声/露比.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "文瑾",
+        "actor": "文瑾",
+        "audio": "/sites/aibox/voices/dramas/悟声/文瑾.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "派珀",
+        "actor": "派珀",
+        "audio": "/sites/aibox/voices/dramas/悟声/派珀.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "大卫",
+        "actor": "大卫",
+        "audio": "/sites/aibox/voices/dramas/悟声/大卫.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "沐曦",
+        "actor": "沐曦",
+        "audio": "/sites/aibox/voices/dramas/悟声/沐曦.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "詹姆斯",
+        "actor": "詹姆斯",
+        "audio": "/sites/aibox/voices/dramas/悟声/詹姆斯.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "哈里森",
+        "actor": "哈里森",
+        "audio": "/sites/aibox/voices/dramas/悟声/哈里森.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "阿利斯泰尔",
+        "actor": "阿利斯泰尔",
+        "audio": "/sites/aibox/voices/dramas/悟声/阿利斯泰尔.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "林遇安",
+        "actor": "林遇安",
+        "audio": "/sites/aibox/voices/dramas/悟声/林遇安.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "威廉",
+        "actor": "威廉",
+        "audio": "/sites/aibox/voices/dramas/悟声/威廉.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "西奥多",
+        "actor": "西奥多",
+        "audio": "/sites/aibox/voices/dramas/悟声/西奥多.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "卓文",
+        "actor": "卓文",
+        "audio": "/sites/aibox/voices/dramas/悟声/卓文.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "Leo",
+        "actor": "Leo",
+        "audio": "/sites/aibox/voices/dramas/悟声/Leo.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "埃莱娜",
+        "actor": "埃莱娜",
+        "audio": "/sites/aibox/voices/dramas/悟声/埃莱娜.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "马达莱娜",
+        "actor": "马达莱娜",
+        "audio": "/sites/aibox/voices/dramas/悟声/马达莱娜.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "伊莎多拉",
+        "actor": "伊莎多拉",
+        "audio": "/sites/aibox/voices/dramas/悟声/伊莎多拉.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "克劳斯·里希特",
+        "actor": "克劳斯·里希特",
+        "audio": "/sites/aibox/voices/dramas/悟声/克劳斯·里希特.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "埃雷拉",
+        "actor": "埃雷拉",
+        "audio": "/sites/aibox/voices/dramas/悟声/埃雷拉.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "舒晚",
+        "actor": "舒晚",
+        "audio": "/sites/aibox/voices/dramas/悟声/舒晚.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "沈知行",
+        "actor": "沈知行",
+        "audio": "/sites/aibox/voices/dramas/悟声/沈知行.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "慕远",
+        "actor": "慕远",
+        "audio": "/sites/aibox/voices/dramas/悟声/慕远.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "云熙",
+        "actor": "云熙",
+        "audio": "/sites/aibox/voices/dramas/悟声/云熙.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "陆晨安",
+        "actor": "陆晨安",
+        "audio": "/sites/aibox/voices/dramas/悟声/陆晨安.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "林慕秋",
+        "actor": "林慕秋",
+        "audio": "/sites/aibox/voices/dramas/悟声/林慕秋.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "夏帆",
+        "actor": "夏帆",
+        "audio": "/sites/aibox/voices/dramas/悟声/夏帆.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "杰克逊",
+        "actor": "杰克逊",
+        "audio": "/sites/aibox/voices/dramas/悟声/杰克逊.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "艾莉",
+        "actor": "艾莉",
+        "audio": "/sites/aibox/voices/dramas/悟声/艾莉.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "藤原 诗织",
+        "actor": "藤原 诗织",
+        "audio": "/sites/aibox/voices/dramas/悟声/藤原 诗织.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "菲伊",
+        "actor": "菲伊",
+        "audio": "/sites/aibox/voices/dramas/悟声/菲伊.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "金瑞允",
+        "actor": "金瑞允",
+        "audio": "/sites/aibox/voices/dramas/悟声/金瑞允.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "赵铁寒",
+        "actor": "赵铁寒",
+        "audio": "/sites/aibox/voices/dramas/悟声/赵铁寒.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "莲",
+        "actor": "莲",
+        "audio": "/sites/aibox/voices/dramas/悟声/莲.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "亚历山大",
+        "actor": "亚历山大",
+        "audio": "/sites/aibox/voices/dramas/悟声/亚历山大.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "奥古斯丁",
+        "actor": "奥古斯丁",
+        "audio": "/sites/aibox/voices/dramas/悟声/奥古斯丁.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "雷诺",
+        "actor": "雷诺",
+        "audio": "/sites/aibox/voices/dramas/悟声/雷诺.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "普丽娅",
+        "actor": "普丽娅",
+        "audio": "/sites/aibox/voices/dramas/悟声/普丽娅.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "马特奥",
+        "actor": "马特奥",
+        "audio": "/sites/aibox/voices/dramas/悟声/马特奥.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "金俊瑞",
+        "actor": "金俊瑞",
+        "audio": "/sites/aibox/voices/dramas/悟声/金俊瑞.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "本托",
+        "actor": "本托",
+        "audio": "/sites/aibox/voices/dramas/悟声/本托.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "江夜行",
+        "actor": "江夜行",
+        "audio": "/sites/aibox/voices/dramas/悟声/江夜行.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "苏晚卿",
+        "actor": "苏晚卿",
+        "audio": "/sites/aibox/voices/dramas/悟声/苏晚卿.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "岑暮川",
+        "actor": "岑暮川",
+        "audio": "/sites/aibox/voices/dramas/悟声/岑暮川.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "凌溪",
+        "actor": "凌溪",
+        "audio": "/sites/aibox/voices/dramas/悟声/凌溪.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "苏云溪",
+        "actor": "苏云溪",
+        "audio": "/sites/aibox/voices/dramas/悟声/苏云溪.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "文博",
+        "actor": "文博",
+        "audio": "/sites/aibox/voices/dramas/悟声/文博.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "云慧",
+        "actor": "云慧",
+        "audio": "/sites/aibox/voices/dramas/悟声/云慧.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "万斯",
+        "actor": "万斯",
+        "audio": "/sites/aibox/voices/dramas/悟声/万斯.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "贾克斯",
+        "actor": "贾克斯",
+        "audio": "/sites/aibox/voices/dramas/悟声/贾克斯.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "蘇詠恩",
+        "actor": "蘇詠恩",
+        "audio": "/sites/aibox/voices/dramas/悟声/蘇詠恩.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "碧翠丝",
+        "actor": "碧翠丝",
+        "audio": "/sites/aibox/voices/dramas/悟声/碧翠丝.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "尹恩书",
+        "actor": "尹恩书",
+        "audio": "/sites/aibox/voices/dramas/悟声/尹恩书.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "梁卓谦",
+        "actor": "梁卓谦",
+        "audio": "/sites/aibox/voices/dramas/悟声/梁卓谦.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "哈维尔",
+        "actor": "哈维尔",
+        "audio": "/sites/aibox/voices/dramas/悟声/哈维尔.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "玲央",
+        "actor": "玲央",
+        "audio": "/sites/aibox/voices/dramas/悟声/玲央.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "阿梅利亚",
+        "actor": "阿梅利亚",
+        "audio": "/sites/aibox/voices/dramas/悟声/阿梅利亚.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "塞西莉亚·马托斯",
+        "actor": "塞西莉亚·马托斯",
+        "audio": "/sites/aibox/voices/dramas/悟声/塞西莉亚·马托斯.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "赫尔加",
+        "actor": "赫尔加",
+        "audio": "/sites/aibox/voices/dramas/悟声/赫尔加.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "阿黛尔海德",
+        "actor": "阿黛尔海德",
+        "audio": "/sites/aibox/voices/dramas/悟声/阿黛尔海德.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "朱利安",
+        "actor": "朱利安",
+        "audio": "/sites/aibox/voices/dramas/悟声/朱利安.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "阿格尼丝",
+        "actor": "阿格尼丝",
+        "audio": "/sites/aibox/voices/dramas/悟声/阿格尼丝.mp3",
+        "avatar": ""
+      }
+    ]
+  },
+  {
+    "title": "声音市场",
+    "characters": [
+      {
+        "name": "东海帝皇",
+        "actor": "东海帝皇",
+        "audio": "/sites/aibox/voices/dramas/声音市场/东海帝皇.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "爱丽丝",
+        "actor": "爱丽丝",
+        "audio": "/sites/aibox/voices/dramas/声音市场/爱丽丝.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "磊哥",
+        "actor": "磊哥",
+        "audio": "/sites/aibox/voices/dramas/声音市场/磊哥.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "詩歌劇マンボ",
+        "actor": "詩歌劇マンボ",
+        "audio": "",
+        "avatar": ""
+      },
+      {
+        "name": "少羽（杨志平）",
+        "actor": "少羽（杨志平）",
+        "audio": "/sites/aibox/voices/dramas/声音市场/少羽（杨志平）.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "柯南",
+        "actor": "柯南",
+        "audio": "/sites/aibox/voices/dramas/声音市场/柯南.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "原神芙宁娜v1.0",
+        "actor": "原神芙宁娜v1.0",
+        "audio": "/sites/aibox/voices/dramas/声音市场/原神芙宁娜v1.0.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "派蒙",
+        "actor": "派蒙",
+        "audio": "/sites/aibox/voices/dramas/声音市场/派蒙.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "永雏塔菲",
+        "actor": "永雏塔菲",
+        "audio": "/sites/aibox/voices/dramas/声音市场/永雏塔菲.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "ウマ娘",
+        "actor": "ウマ娘",
+        "audio": "/sites/aibox/voices/dramas/声音市场/ウマ娘.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "东雪莲",
+        "actor": "东雪莲",
+        "audio": "/sites/aibox/voices/dramas/声音市场/东雪莲.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "鲸鱼娘",
+        "actor": "鲸鱼娘",
+        "audio": "/sites/aibox/voices/dramas/声音市场/鲸鱼娘.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "奶龙",
+        "actor": "奶龙",
+        "audio": "/sites/aibox/voices/dramas/声音市场/奶龙.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "ペイン天道［超］",
+        "actor": "ペイン天道［超］",
+        "audio": "",
+        "avatar": ""
+      },
+      {
+        "name": "贝利亚",
+        "actor": "贝利亚",
+        "audio": "/sites/aibox/voices/dramas/声音市场/贝利亚.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "流萤",
+        "actor": "流萤",
+        "audio": "/sites/aibox/voices/dramas/声音市场/流萤.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "涩涩姐姐",
+        "actor": "涩涩姐姐",
+        "audio": "/sites/aibox/voices/dramas/声音市场/涩涩姐姐.mp3",
+        "avatar": ""
+      },
+      {
+        "name": "八重神子",
+        "actor": "八重神子",
+        "audio": "/sites/aibox/voices/dramas/声音市场/八重神子.mp3",
+        "avatar": ""
+      }
+    ]
+  }
+]

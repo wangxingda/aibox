@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 import httpx
 import jwt
 import redis
-from fastapi import Cookie, Depends, FastAPI, File, HTTPException, Header, Request, Response, UploadFile
+from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Header, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
@@ -225,6 +225,62 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(curren
         raise
     return {'id': upload_id, 'deduplicated': False}
 
+@app.post('/api/uploads/audio', status_code=201)
+async def upload_audio(file: UploadFile = File(...), user: User = Depends(current_user), session: DBSession = Depends(db)):
+    data = await file.read(3 * 1024 * 1024 + 1)
+    if len(data) > 3 * 1024 * 1024:
+        raise HTTPException(413, '音频不能超过 3 MB')
+    if not data:
+        raise HTTPException(400, '音频不能为空')
+    try:
+        probe = subprocess.run(['ffprobe', '-v', 'error', '-show_streams', '-of', 'json', '-i', 'pipe:0'], input=data, capture_output=True, timeout=15)
+        streams = json.loads(probe.stdout).get('streams', [])
+        if probe.returncode or not streams or any(item.get('codec_type') != 'audio' for item in streams):
+            raise ValueError('Invalid audio')
+        if data.startswith(b'RIFF') and data[8:12] == b'WAVE':
+            ext, content_type = '.wav', 'audio/wav'
+        elif data.startswith(b'ID3') or (len(data) > 1 and data[0] == 0xff and data[1] & 0xe0 == 0xe0):
+            ext, content_type = '.mp3', 'audio/mpeg'
+        elif data.startswith(b'\x1a\x45\xdf\xa3'):
+            ext, content_type = '.webm', 'audio/webm'
+        else:
+            raise ValueError('Unsupported audio')
+    except (ValueError, OSError, subprocess.TimeoutExpired):
+        raise HTTPException(400, '仅支持有效的 WAV、MP3 或录制的 WebM 音频')
+    digest = hashlib.sha256(data).hexdigest()
+    directory = cfg.path(cfg.upload_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    existing = session.scalar(select(Upload).where(Upload.user_id == user.id, Upload.sha256 == digest))
+    if existing:
+        path = directory / Path(existing.path).name
+        if not path.is_file():
+            temporary = directory / f'.restore-{uuid.uuid4()}'
+            try:
+                temporary.write_bytes(data)
+                os.replace(temporary, path)
+            finally:
+                temporary.unlink(missing_ok=True)
+        return {'id': existing.id, 'deduplicated': True}
+    upload_id = str(uuid.uuid4())
+    path = directory / (upload_id + ext)
+    path.write_bytes(data)
+    row = Upload(id=upload_id, user_id=user.id, path=path.name, content_type=content_type, sha256=digest)
+    session.add(row)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        path.unlink(missing_ok=True)
+        existing = session.scalar(select(Upload).where(Upload.user_id == user.id, Upload.sha256 == digest))
+        if existing:
+            return {'id': existing.id, 'deduplicated': True}
+        raise
+    except Exception:
+        session.rollback()
+        path.unlink(missing_ok=True)
+        raise
+    return {'id': upload_id, 'deduplicated': False}
+
 class ExampleAssetInput(BaseModel):
     filename: str
     collection: Literal['examples', 'templates'] = 'examples'
@@ -268,8 +324,8 @@ def import_example_asset(data: ExampleAssetInput, user: User = Depends(current_u
     return {'id': upload_id}
 
 @app.get('/api/uploads')
-def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'all'] = 'image'):
-    media_filter = or_(Upload.content_type.like('image/%'), Upload.content_type.like('video/%')) if kind == 'all' else Upload.content_type.like(f'{kind}/%')
+def list_uploads(user: User = Depends(current_user), session: DBSession = Depends(db), limit: int = 30, offset: int = 0, kind: Literal['image', 'video', 'audio', 'all'] = 'image'):
+    media_filter = or_(Upload.content_type.like('image/%'), Upload.content_type.like('video/%'), Upload.content_type.like('audio/%')) if kind == 'all' else Upload.content_type.like(f'{kind}/%')
     rows = session.scalars(select(Upload).where(Upload.user_id == user.id, media_filter).order_by(Upload.created_at.desc(), Upload.id.desc()).limit(max(1, min(limit, 100))).offset(max(offset, 0))).all()
     return [{'id': row.id, 'content_type': row.content_type, 'created_at': row.created_at.isoformat() + 'Z', 'url': f'/api/uploads/{row.id}/content'} for row in rows]
 
@@ -613,3 +669,31 @@ async def output(task_id: str, index: int, request: Request, download: bool = Fa
     return FileResponse(path, media_type=media_type,
                         filename=f'aibox-{task.id}-{index + 1}{suffix}' if download else None,
                         headers={'Cache-Control': 'private, max-age=60', 'X-Content-Type-Options': 'nosniff'})
+
+
+@app.post('/api/voice/clone')
+async def clone_voice(text: str = Form(...), audio: UploadFile = File(...), user: User = Depends(current_user)):
+    text = text.strip()
+    if not text or len(text) > 2000:
+        raise HTTPException(400, '请输入不超过 2000 字的文本')
+    data = await audio.read(3 * 1024 * 1024 + 1)
+    if not data or len(data) > 3 * 1024 * 1024:
+        raise HTTPException(400, '音频不能为空且不能超过 3 MB')
+    if data.startswith(b'RIFF') and data[8:12] == b'WAVE':
+        filename, mime = 'sample.wav', 'audio/wav'
+    elif data.startswith(b'ID3') or (len(data) > 1 and data[0] == 0xff and data[1] & 0xe0 == 0xe0):
+        filename, mime = 'sample.mp3', 'audio/mpeg'
+    elif data.startswith(b'\x1a\x45\xdf\xa3'):
+        filename, mime = 'sample.webm', 'audio/webm'
+    else:
+        raise HTTPException(400, '请选择 WAV、MP3 或浏览器录制的 WebM 音频')
+    if not cfg.tts_api_url:
+        raise HTTPException(503, '声音生成服务尚未配置')
+    try:
+        async with httpx.AsyncClient(timeout=300, follow_redirects=False) as client:
+            result = await client.post(cfg.tts_api_url, data={'text': text, 'emo_control_method': '2'}, files={'audio': (filename, data, mime)})
+        if result.status_code != 200 or not result.content.startswith(b'RIFF') or result.content[8:12] != b'WAVE':
+            raise HTTPException(502, '声音生成服务返回异常，请稍后重试')
+        return Response(result.content, media_type='audio/wav', headers={'Cache-Control': 'no-store'})
+    except httpx.HTTPError:
+        raise HTTPException(502, '声音生成服务暂时不可用，请稍后重试')
