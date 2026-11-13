@@ -1,0 +1,22 @@
+.diandian-login, .workspace .diandian-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  padding: 8px 16px;
+  border: 1px solid #476166;
+  border-radius: 9px;
+  background: #263537;
+  color: #e5f7f7;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.diandian-login:hover, .workspace .diandian-login:hover { background: #304447; border-color: #70d5df; }
+.diandian-login:focus-visible { outline: 2px solid #73d9e8; outline-offset: 2px; }
+.diandian-login-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #fff; flex-shrink: 0; }
