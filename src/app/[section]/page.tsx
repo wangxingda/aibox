@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Workspace } from "@/components/sites/aibox/workspace";
 import { InfoPage } from "@/components/sites/aibox/info-page";
-const workspaceSections = ["create", "voice-clone", "voice-audio-drive", "digital-human", "image-to-video", "text-to-video", "image-edit", "image-to-image", "text-to-image", "refer-to-video", "video-to-video", "frame-to-video", "character-replacement", "motion-transfer", "ai-tools", "effects", "my", "assets"];
+const workspaceSections = ["create", "voice-clone", "voice-audio-drive", "image-to-video", "text-to-video", "image-edit", "image-to-image", "text-to-image", "refer-to-video", "video-to-video", "frame-to-video", "character-replacement", "motion-transfer", "ai-tools", "effects", "my", "assets"];
 const information: Record<string, { title: string; description: string }> = {
   pricing: { title: "选择适合你的创作方案", description: "浏览创作工作台并探索视频与图片生成工具。套餐和支付服务尚未接入。" },
   about: { title: "关于 AIBox", description: "AIBox 提供图片与视频创作工作台，帮助你从文字和图片出发探索创意。" },
