@@ -50,6 +50,7 @@ services:
   worker:
     <<: *backend
     command: ["python", "-m", "app.worker"]
+    stop_grace_period: 5m
     ports: []
     depends_on:
       api: {condition: service_healthy}

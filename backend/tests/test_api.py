@@ -930,3 +930,41 @@ def test_admin_credit_grant_permissions_and_idempotency(client, monkeypatch):
     client.post('/api/auth/login', json={'email': 'target@example.com', 'password': 'password123'})
     assert client.get('/api/credits').json() == {'balance': 1050, 'claimed': True}
     assert client.post('/api/credits/claim').json()['balance'] == 1050
+
+@pytest.mark.parametrize(('evidence', 'expected'), [
+    ('history', 'running'), ('queue', 'running'), ('absent', 'unknown'), ('offline', 'submitting'),
+])
+def test_interrupted_submission_reconciles_without_reposting(client, monkeypatch, evidence, expected):
+    import httpx
+    from datetime import timedelta
+    from app import worker
+    from app.db import Session, Task, utcnow
+
+    register(client)
+    task = client.post('/api/tasks', json={'kind': 'image', 'model': 'demo-image', 'prompt': 'draw'}).json()
+    assert worker.claim() == task['id']
+    with Session.begin() as session:
+        row = session.get(Task, task['id'])
+        row.updated_at = utcnow() - timedelta(seconds=181)
+        prompt_id = row.comfy_prompt_id
+
+    requests = []
+    class FakeClient:
+        def __init__(self, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def get(self, url):
+            requests.append(url)
+            if evidence == 'offline':
+                raise httpx.ConnectError('offline')
+            if '/history/' in url:
+                payload = {prompt_id: {'status': {'completed': True}}} if evidence == 'history' else {}
+            else:
+                payload = {'queue_running': [[0, prompt_id, {}, {}, []]] if evidence == 'queue' else [], 'queue_pending': []}
+            return httpx.Response(200, json=payload, request=httpx.Request('GET', url))
+    monkeypatch.setattr(worker.httpx, 'Client', FakeClient)
+    worker.recover_uncertain()
+    with Session() as session:
+        assert session.get(Task, task['id']).status == expected
+    assert requests
+    assert worker.claim() is None

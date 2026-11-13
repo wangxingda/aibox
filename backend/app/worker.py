@@ -1,5 +1,6 @@
 """MySQL is the durable queue; Redis caches task snapshots, never owns tasks."""
 import logging
+import signal
 import copy
 import json
 import time
@@ -24,6 +25,7 @@ from .workflows import WorkflowError, build_workflow
 cfg = settings()
 log = logging.getLogger('worker')
 _poll_cursor = None
+_stop = threading.Event()
 _progress_lock = threading.Lock()
 _progress_threads: dict[str, threading.Thread] = {}
 _progress_retry_after: dict[str, float] = {}
@@ -356,26 +358,58 @@ def poll_running():
                 update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'running'})
 
 def recover_uncertain():
+    # A crashed submitter may have sent /prompt before persisting its response.
+    # Only positive evidence is enough to resume; absence is never retried.
     cutoff = utcnow() - timedelta(seconds=180)
     with Session() as session:
-        ids = session.scalars(select(Task.id).where(Task.status == 'submitting', Task.updated_at < cutoff)).all()
-    for task_id in ids:
-        update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'}, stale_before=cutoff)
+        rows = session.execute(select(Task.id, Task.comfy_prompt_id).where(
+            Task.status == 'submitting', Task.updated_at < cutoff)).all()
+    for task_id, prompt_id in rows:
+        found = False
+        try:
+            with httpx.Client(timeout=10, headers=headers()) as client:
+                response = client.get(cfg.comfyui_url.rstrip('/') + '/history/' + prompt_id)
+                response.raise_for_status()
+                found = prompt_id in response.json()
+                if not found:
+                    response = client.get(cfg.comfyui_url.rstrip('/') + '/queue')
+                    response.raise_for_status()
+                    queue = response.json()
+                    found = any(isinstance(entry, list) and len(entry) > 1 and entry[1] == prompt_id
+                                for key in ('queue_running', 'queue_pending')
+                                for entry in queue.get(key, []))
+        except (httpx.HTTPError, ValueError, TypeError, KeyError):
+            log.warning('Cannot reconcile submission for task %s', task_id, exc_info=True)
+            # Keep checking after a temporary outage rather than finalizing it.
+            continue
+        if found:
+            update(task_id, 'running', expected={'submitting'}, stale_before=cutoff)
+        else:
+            update(task_id, 'unknown', '暂时无法确认任务结果，请联系客服核实后再重试，避免重复生成。', expected={'submitting'}, stale_before=cutoff)
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    while True:
+    def request_stop(signum, frame):
+        log.info('Shutdown requested; finishing the current worker cycle')
+        _stop.set()
+    signal.signal(signal.SIGTERM, request_stop)
+    signal.signal(signal.SIGINT, request_stop)
+    while not _stop.is_set():
         try:
             recover_uncertain()
+            if _stop.is_set():
+                break
             task_id = claim()
             if task_id:
                 submit(task_id)
+            if _stop.is_set():
+                break
             poll_running()
             if not task_id:
-                time.sleep(2)
+                _stop.wait(2)
         except Exception:
             log.exception('Worker cycle failed')
-            time.sleep(5)
+            _stop.wait(5)
 
 if __name__ == '__main__':
     main()
