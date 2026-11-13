@@ -66,3 +66,14 @@ def test_hits_existing_email_requires_original_password(client,monkeypatch):
     assert client.post('/api/auth/hits/bind',headers=headers,json={'password':'wrong-password'}).status_code==401
     assert client.post('/api/auth/hits/bind',headers=headers,json={'password':'password123'}).status_code==200
     assert client.get('/api/auth/me').json()['id']==original
+
+
+def test_default_server_sso_configuration(monkeypatch):
+    from app.config import Settings
+    for name in ('HITS_BASE_URL', 'HITS_CLIENT_ID', 'HITS_CLIENT_SECRET', 'HITS_CALLBACK_URL'):
+        monkeypatch.delenv(name, raising=False)
+    config = Settings(_env_file=None, jwt_secret='test-secret-with-at-least-32-characters-long')
+    assert config.hits_base_url == 'http://43.143.146.27'
+    assert config.hits_callback_url == 'http://49.233.86.246/api/auth/hits/callback'
+    assert config.hits_client_id == 'aibox'
+    assert config.hits_client_secret == 'aibox-hits-public-test-default-key-2026'

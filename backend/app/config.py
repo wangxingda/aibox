@@ -22,10 +22,20 @@ class Settings(BaseSettings):
     template_dir: str = '../public/sites/aibox/templates'
     task_timeout_seconds: int = 3600
     session_hours: int = 24
-    hits_base_url: str = ""
+    hits_base_url: str = "http://43.143.146.27"
     hits_client_id: str = "aibox"
     hits_client_secret: str = "aibox-hits-public-test-default-key-2026"
-    hits_callback_url: str = ""
+    hits_callback_url: str = "http://49.233.86.246/api/auth/hits/callback"
+
+    @field_validator('hits_base_url', mode='before')
+    @classmethod
+    def default_hits_base_url(cls, value):
+        return value or 'http://43.143.146.27'
+
+    @field_validator('hits_callback_url', mode='before')
+    @classmethod
+    def default_hits_callback_url(cls, value):
+        return value or 'http://49.233.86.246/api/auth/hits/callback'
 
     @field_validator('hits_client_secret', mode='before')
     @classmethod

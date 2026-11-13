@@ -32,6 +32,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       EXAMPLE_DIR: /app/example-assets
       TEMPLATE_DIR: /app/template-assets
+      HITS_BASE_URL: ${HITS_BASE_URL:-http://43.143.146.27}
+      HITS_CALLBACK_URL: ${HITS_CALLBACK_URL:-http://49.233.86.246/api/auth/hits/callback}
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
