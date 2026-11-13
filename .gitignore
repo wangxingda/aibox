@@ -16,3 +16,23 @@ __pycache__/
 *.log
 .vscode/
 .idea/
+
+# 未使用的历史示例素材（本地保留）
+/public/sites/aibox/templates/24bd04a5-c38b-4a3c-95de-4cade2212ee5-cover.jpg
+/public/sites/aibox/templates/35a7e5c8-95ff-4c44-8ced-cff362248fc2-cover.jpg
+/public/sites/aibox/templates/41375f3d-e52e-4da3-af5c-da763c60d9a0-cover.jpg
+/public/sites/aibox/templates/432d4bfe-4ecd-475d-9b80-d1b4a191c546-cover.jpg
+/public/sites/aibox/templates/4bb59323-97c3-4243-b631-9eee864dc4f6-cover.jpg
+/public/sites/aibox/templates/87ce8e85-ac5c-419b-8511-916e35611957-cover.jpg
+/public/sites/aibox/templates/8f065e53-1da1-4cff-8600-dc7f43f44448-cover.jpg
+/public/sites/aibox/templates/a3296a3b-ddc7-4c36-8b9e-77b80f67c9ca-cover.jpg
+/public/sites/aibox/templates/ac69973f-d6a8-434a-abf1-a09f7de147dd-cover.jpg
+/public/sites/aibox/templates/c8a25587-3092-4949-8f8a-fa2e26121686-cover.jpg
+/public/sites/aibox/templates/db61de8b-93c7-4152-b7cd-f381a9c648b2-cover.jpg
+/public/sites/aibox/templates/ed70d6cc-a5f6-443b-8180-33d63d8326d5-cover.jpg
+/public/sites/aibox/templates/fbefd1b9-1111-4220-baec-baeb368509be-cover.jpg
+/public/sites/aibox/templates/ff5c9f17-844a-4719-9941-3f9d2c855995-cover.jpg
+/public/sites/aibox/video-examples/replacement-1-poster.jpg
+/public/sites/aibox/video-examples/replacement-2-poster.jpg
+/public/sites/aibox/video-examples/replacement-3-poster.jpg
+/public/sites/aibox/video-examples/replacement-4-poster.jpg
