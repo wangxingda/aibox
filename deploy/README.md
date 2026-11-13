@@ -4,7 +4,7 @@
 
 ## 准备
 
-需要 Docker Engine、Docker Compose 和 Git LFS，服务器能够访问配置的 ComfyUI。克隆前执行 `git lfs install`；`build` 和 `update` 会下载并检查 Git LFS 素材，下载失败或素材仍是指针时不会构建或停止服务。直接使用 Docker Compose 构建时需先自行执行 `git lfs pull`。历史迁移后，旧检出与新历史无法快进，应备份本地改动并重新克隆。`Dockerfile.frontend` 使用 npm 国内镜像；`Dockerfile.backend` 优先使用阿里云 Debian 和 PyPI 镜像，PyPI 失败时回退到官方源；容器基础镜像通过 DaoCloud 镜像拉取。
+需要 Docker Engine、Docker Compose、Git LFS 和 Python 3（用于检查证书路径），服务器能够访问配置的 ComfyUI。克隆前执行 `git lfs install`；`build` 和 `update` 会下载并检查 Git LFS 素材，下载失败或素材仍是指针时不会构建或停止服务。直接使用 Docker Compose 构建时需先自行执行 `git lfs pull`。历史迁移后，旧检出与新历史无法快进，应备份本地改动并重新克隆。`Dockerfile.frontend` 使用 npm 国内镜像；`Dockerfile.backend` 优先使用阿里云 Debian 和 PyPI 镜像，PyPI 失败时回退到官方源；容器基础镜像通过 DaoCloud 镜像拉取。
 
 在服务器创建位于仓库之外、仅部署用户可读取的环境文件，参考 `deploy/.env.example`，为 MySQL 和 JWT 生成独立的随机值。MySQL 密码应使用 URL 安全字符。`CORS_ORIGINS` 设置为实际访问地址（包括协议和必要端口），多个来源用逗号分隔。不要把环境文件或备份提交到 Git。
 
@@ -39,15 +39,9 @@ curl -fsS https://aibox.idiandian.xyz/api/health
 
 在执行新版本的 `update` **之前**完成以下准备，否则 Nginx 找不到证书时无法启动。确认域名 `aibox.idiandian.xyz` 的 DNS 指向此服务器，云安全组和服务器防火墙允许 TCP 80、443，且 443 未被其他服务占用。Nginx 将 HTTP 请求重定向到 HTTPS。
 
-将证书完整链和私钥放到项目目录同级的 `shared/tls/`，分别命名为 `fullchain.pem` 和 `privkey.pem`；如果证书由其他工具维护，请复制实际文件（不要使用指向容器挂载目录外的符号链接）。例如，用实际证书路径替换下列占位符：
+将证书完整链和私钥放在项目目录同级的 `ssl/`，与 `shared/` 同级，文件名分别为 `aibox.idiandian.xyz.crt` 和 `aibox.idiandian.xyz.key`。Nginx 会直接以只读方式挂载该目录，无需复制或重命名。若证书由其他工具维护，请使用实际文件，不要使用指向挂载目录外的符号链接。
 
-```sh
-sudo install -d -m 700 ../shared/tls
-sudo install -m 644 /path/to/fullchain.pem ../shared/tls/fullchain.pem
-sudo install -m 600 /path/to/privkey.pem ../shared/tls/privkey.pem
-```
-
-也可以在部署环境文件中设置 `AIBOX_TLS_DIR` 为证书目录的绝对路径。证书必须覆盖该域名，且 Nginx 容器内的 root 能读取私钥；不要提交证书私钥。
+也可以在部署环境文件中设置 `AIBOX_TLS_DIR` 为证书目录的绝对路径，目录内仍需使用上述文件名。`start` 和 `update` 会在启动或停止应用服务前检查两个文件是否存在。证书必须包含完整证书链并覆盖该域名，且运行部署脚本的用户能访问证书目录、Nginx 容器内的 root 能读取私钥；不要提交私钥。
 
 在 `shared/.env`（或 `AIBOX_ENV_FILE` 指定的文件）设置：
 
@@ -67,6 +61,6 @@ curl -fsS https://aibox.idiandian.xyz/api/health
 docker compose --env-file "${AIBOX_ENV_FILE:-../shared/.env}" -f deploy/compose.yml exec nginx nginx -t
 ```
 
-更新证书后替换上述两个文件，再运行 `docker compose --env-file "${AIBOX_ENV_FILE:-../shared/.env}" -f deploy/compose.yml exec nginx nginx -t`，确认通过后执行相同命令但将 `nginx -t` 替换为 `nginx -s reload`。如果校验失败，不要 reload；修复证书后重新校验。请定期续期并实际验证 TLS 和登录流程。
+更新证书后替换 `ssl/` 中上述两个文件，再运行 `docker compose --env-file "${AIBOX_ENV_FILE:-../shared/.env}" -f deploy/compose.yml exec nginx nginx -t`，确认通过后执行相同命令但将 `nginx -t` 替换为 `nginx -s reload`。如果校验失败，不要 reload；修复证书后重新校验。请定期续期并实际验证 TLS 和登录流程。
 
 HITS 授权登录的 `HITS_BASE_URL`、`HITS_CLIENT_ID`、`HITS_CLIENT_SECRET` 和 `HITS_CALLBACK_URL` 可在部署环境文件中设置，Compose 会传入 API 容器；配置和迁移步骤见 [HITS 登录对接](../backend/docs/hits-sso.md)。生产环境需为两个站点配置有效的 HTTPS。

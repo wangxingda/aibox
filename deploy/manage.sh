@@ -35,6 +35,18 @@ prepare_lfs_assets() {
   fi
 }
 
+check_tls_files() {
+  # Resolve the same Compose interpolation precedence without printing the environment.
+  local tls_dir
+  tls_dir=$("${compose[@]}" config --format json | python3 -c 'import json, sys; c = json.load(sys.stdin); print(next(v["source"] for v in c["services"]["nginx"]["volumes"] if v["target"] == "/etc/nginx/tls"))')
+  for file in aibox.idiandian.xyz.crt aibox.idiandian.xyz.key; do
+    if [[ ! -f "$tls_dir/$file" ]]; then
+      printf '证书文件不存在：%s\n请检查证书目录和 AIBOX_TLS_DIR。\n' "$tls_dir/$file" >&2
+      return 1
+    fi
+  done
+}
+
 command_name="${1:-}"
 case "$command_name" in
   build|start|stop|restart|update|status|logs) ;;
@@ -60,7 +72,7 @@ fi
 compose=("${docker_cmd[@]}" compose --env-file "$env_file" -f "$root_dir/deploy/compose.yml")
 case "$command_name" in
   build) prepare_lfs_assets; "${compose[@]}" build ;;
-  start) "${compose[@]}" up -d --no-build ;;
+  start) check_tls_files; "${compose[@]}" up -d --no-build ;;
   stop) "${compose[@]}" stop ;;
   restart)
     "${compose[@]}" restart api worker frontend
@@ -91,6 +103,7 @@ case "$command_name" in
     esac
     git -C "$root_dir" pull --ff-only
     prepare_lfs_assets
+    check_tls_files
     old_images=()
     for image in aibox-api:latest aibox-worker:latest aibox-frontend:latest; do
       if image_id=$("${docker_cmd[@]}" image inspect --format '{{.Id}}' "$image" 2>/dev/null); then
