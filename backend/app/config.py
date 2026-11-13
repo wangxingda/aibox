@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     hits_base_url: str = "https://idiandian.xyz"
     hits_client_id: str = "aibox"
     hits_client_secret: str = "aibox-hits-public-test-default-key-2026"
-    hits_callback_url: str = "http://49.233.86.246/api/auth/hits/callback"
+    hits_callback_url: str = "https://aibox.idiandian.xyz/api/auth/hits/callback"
 
     @field_validator('hits_base_url', mode='before')
     @classmethod
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     @field_validator('hits_callback_url', mode='before')
     @classmethod
     def default_hits_callback_url(cls, value):
-        return value or 'http://49.233.86.246/api/auth/hits/callback'
+        return value or 'https://aibox.idiandian.xyz/api/auth/hits/callback'
 
     @field_validator('hits_client_secret', mode='before')
     @classmethod

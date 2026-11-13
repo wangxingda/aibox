@@ -42,7 +42,7 @@ services:
       HITS_BASE_URL: ${HITS_BASE_URL:-https://idiandian.xyz}
       HITS_CLIENT_ID: ${HITS_CLIENT_ID:-aibox}
       HITS_CLIENT_SECRET: ${HITS_CLIENT_SECRET:-aibox-hits-public-test-default-key-2026}
-      HITS_CALLBACK_URL: ${HITS_CALLBACK_URL:-http://49.233.86.246/api/auth/hits/callback}
+      HITS_CALLBACK_URL: ${HITS_CALLBACK_URL:-https://aibox.idiandian.xyz/api/auth/hits/callback}
     volumes:
       - upload_data:/app/storage/uploads
       - ../public/sites/aibox/video-examples:/app/example-assets:ro
@@ -77,8 +77,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${AIBOX_TLS_DIR:-../../shared/tls}:/etc/nginx/tls:ro
     depends_on:
       - frontend
       - api
