@@ -34,3 +34,5 @@ curl -fsS http://127.0.0.1/api/health
 首次启动会初始化全新数据库。若需要迁移现有数据库或上传素材，先备份并验证备份，再按 [数据结构与交互约定](../backend/docs/data-model.md) 操作；不要在运行中的数据库上直接覆盖数据文件。使用 `update` 会自动完成停服务、备份和迁移；手动升级时仍需按相同顺序操作。
 
 生成任务依赖远端 ComfyUI 的 HTTP 和 WebSocket 接口，服务器必须能访问配置地址。站点的账号密码需要 HTTPS 保护：本配置仅提供 HTTP 入口，如需公网正式使用，应配置域名和 TLS，并将 `CORS_ORIGINS` 和 `COOKIE_SECURE` 调整为实际 HTTPS 配置。
+
+HITS 授权登录的 `HITS_BASE_URL`、`HITS_CLIENT_ID`、`HITS_CLIENT_SECRET` 和 `HITS_CALLBACK_URL` 可在部署环境文件中设置，Compose 会传入 API 容器；配置和迁移步骤见 [HITS 登录对接](../backend/docs/hits-sso.md)。生产环境需为两个站点配置有效的 HTTPS。

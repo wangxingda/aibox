@@ -24,8 +24,13 @@ class Settings(BaseSettings):
     session_hours: int = 24
     hits_base_url: str = ""
     hits_client_id: str = "aibox"
-    hits_client_secret: str = ""
+    hits_client_secret: str = "aibox-hits-public-test-default-key-2026"
     hits_callback_url: str = ""
+
+    @field_validator('hits_client_secret', mode='before')
+    @classmethod
+    def default_hits_test_secret(cls, value):
+        return value or 'aibox-hits-public-test-default-key-2026'
 
     @field_validator('jwt_secret')
     @classmethod

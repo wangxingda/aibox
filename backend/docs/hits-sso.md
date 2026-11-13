@@ -39,3 +39,5 @@ HITS_TEST_PROVIDER_URL=http://127.0.0.1:18555 DATABASE_URL=sqlite:////tmp/aibox-
 ```
 
 集成测试通过真实 HTTP 调用 HITS 提供方，覆盖首次授权、未设置密码禁止登录、密码不一致、完成后本地密码登录、再次 HITS 登录、回调 state 错误及已有邮箱绑定。模型测试覆盖授权过期、重复使用、身份唯一性和旧数据库重复升级。HITS 单独测试覆盖 PKCE、回调地址、CSRF 和授权码重放。未配置 `HITS_TEST_PROVIDER_URL` 时跳过跨站测试。生产代理、真实 HITS 数据库和 Redis 需要部署时验证。
+
+测试默认客户端密钥为公开固定值 `aibox-hits-public-test-default-key-2026`，仅用于测试对接。生产部署必须在双方环境中设置相同的独立随机密钥覆盖默认值；不得用公开默认值保护真实账号。
