@@ -39,7 +39,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       ADMIN_USER_IDS: ${ADMIN_USER_IDS:-}
-      HITS_BASE_URL: ${HITS_BASE_URL:-http://43.143.146.27}
+      HITS_BASE_URL: ${HITS_BASE_URL:-https://idiandian.xyz}
       HITS_CLIENT_ID: ${HITS_CLIENT_ID:-aibox}
       HITS_CLIENT_SECRET: ${HITS_CLIENT_SECRET:-aibox-hits-public-test-default-key-2026}
       HITS_CALLBACK_URL: ${HITS_CALLBACK_URL:-http://49.233.86.246/api/auth/hits/callback}

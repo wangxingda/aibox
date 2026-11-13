@@ -73,7 +73,7 @@ def test_default_server_sso_configuration(monkeypatch):
     for name in ('HITS_BASE_URL', 'HITS_CLIENT_ID', 'HITS_CLIENT_SECRET', 'HITS_CALLBACK_URL'):
         monkeypatch.delenv(name, raising=False)
     config = Settings(_env_file=None, jwt_secret='test-secret-with-at-least-32-characters-long')
-    assert config.hits_base_url == 'http://43.143.146.27'
+    assert config.hits_base_url == 'https://idiandian.xyz'
     assert config.hits_callback_url == 'http://49.233.86.246/api/auth/hits/callback'
     assert config.hits_client_id == 'aibox'
     assert config.hits_client_secret == 'aibox-hits-public-test-default-key-2026'

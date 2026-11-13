@@ -14,7 +14,7 @@ HITS 端配置见该项目 `docs/aibox-sso.md`。在 AIBox `backend/.env` 配置
 - `HITS_CALLBACK_URL`：浏览器访问的本站完整回调 URL，与 HITS 精确匹配，例如本机 `http://localhost:3001/api/auth/hits/callback`。
 - `CORS_ORIGINS`：包含本站实际浏览器来源；生产启用 `COOKIE_SECURE=true`。
 
-临时服务器联调默认使用 HITS `http://43.143.146.27`、AIBox 回调 `http://49.233.86.246/api/auth/hits/callback` 和公开测试密钥；未设置或留空时均使用这些默认值，Docker Compose 也会传入默认地址。HITS 的默认测试配置会允许 Authlib 使用 HTTP，影响该进程内使用 Authlib 的其他功能。HTTP 会暴露密码和授权数据，公开密钥也不安全，只能用于临时测试账号；正式环境必须配置 HTTPS 和双方一致的独立随机密钥，并关闭 HTTP 测试配置。已有邮箱密码登录可继续使用。前端始终通过本站 `/api` 代理通信。不要将密钥写入前端或提交仓库。代理应避免在访问日志中长期保留带授权码的回调查询串。
+默认使用 HITS `https://idiandian.xyz`、AIBox 回调 `http://49.233.86.246/api/auth/hits/callback` 和公开测试密钥；回调及密钥仅适用于临时测试，未设置或留空时均使用这些默认值，Docker Compose 也会传入默认地址。HITS 的默认测试配置会允许 Authlib 使用 HTTP，影响该进程内使用 Authlib 的其他功能。HTTP 会暴露密码和授权数据，公开密钥也不安全，只能用于临时测试账号；正式环境必须配置 HTTPS 和双方一致的独立随机密钥，并关闭 HTTP 测试配置。已有邮箱密码登录可继续使用。前端始终通过本站 `/api` 代理通信。不要将密钥写入前端或提交仓库。代理应避免在访问日志中长期保留带授权码的回调查询串。
 
 上线前确认任务、备份业务数据库和上传目录，停止 API/worker，执行 `.venv/bin/python -m app.migrate`，然后启动服务。版本化迁移 `20261113_01_hits_identities` 为新增身份和待注册表创建约束，支持重复执行。新增表由增量建表创建，不修改旧用户字段、不回填旧账号。首次在全新数据库启动时也会自动建表。涉及的唯一约束位于新表，身份重复和并发注册冲突由数据库拒绝。
 
