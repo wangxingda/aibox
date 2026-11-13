@@ -115,3 +115,12 @@ class CreditCharge(Base):
     day: Mapped[str] = mapped_column(String(10))
     amount: Mapped[int] = mapped_column(Integer)
     refunded: Mapped[bool] = mapped_column(default=False)
+
+class CreditGrant(Base):
+    __tablename__ = 'credit_grants'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'))
+    admin_id: Mapped[str] = mapped_column(ForeignKey('users.id'))
+    amount: Mapped[int] = mapped_column(Integer)
+    balance_after: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

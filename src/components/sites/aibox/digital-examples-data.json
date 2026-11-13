@@ -1,23 +1,43 @@
 [
   {
+    "id": "audio-drive-demo",
+    "title": "悟空 · 音频驱动",
+    "image": "/sites/aibox/digital-examples/audio-drive-demo-cover.jpg",
+    "inputImage": "/sites/aibox/digital-examples/audio-drive-demo-input.jpg",
+    "video": "/sites/aibox/digital-examples/audio-drive-demo.mp4",
+    "prompt": "悟空在愤怒的说话，一直挠头，最后从手中拿出来一把 AK47 扫射",
+    "inputAudio": "/sites/aibox/digital-examples/audio-drive-demo-audio.wav"
+  },
+  {
     "id": "1b04fe7e-966d-475c-b54a-1d5a9fe73100",
     "title": "真实感数字人口播",
     "image": "/sites/aibox/templates/1b04fe7e-966d-475c-b54a-1d5a9fe73100-cover.jpg",
     "inputImage": "/sites/aibox/templates/1b04fe7e-966d-475c-b54a-1d5a9fe73100-input.jpg",
+    "inputAudio": "/sites/aibox/templates/1b04fe7e-966d-475c-b54a-1d5a9fe73100-audio.bin",
     "prompt": "角色根据音频轻微动作，他不看镜头的口播，不要大幅度动作，身体主体不动，呈现单人口播效果，表情不要太夸张，人物躯干不动，他侧身双眼看向前方而不是看向镜头，人物的手举起，做出讲话的动作，要求自然，身体主体不要晃动，动作晃动不要太多，整体稳定一些，自然一些，身体不要晃动"
   },
   {
-    "id": "fb5daaa7-f36a-4aba-b2bc-4ebe2667536f",
-    "title": "数字人·人物影像",
-    "image": "/sites/aibox/templates/fb5daaa7-f36a-4aba-b2bc-4ebe2667536f-cover.jpg",
-    "inputImage": "/sites/aibox/templates/fb5daaa7-f36a-4aba-b2bc-4ebe2667536f-input.jpg",
+    "id": "0afe9902-73c4-4336-8a31-2d10a194fc54",
+    "title": "数字人·人物影像 5",
+    "image": "/sites/aibox/templates/0afe9902-73c4-4336-8a31-2d10a194fc54-cover.jpg",
+    "inputImage": "/sites/aibox/templates/0afe9902-73c4-4336-8a31-2d10a194fc54-input.jpg",
+    "inputAudio": "/sites/aibox/templates/0afe9902-73c4-4336-8a31-2d10a194fc54-audio.bin",
     "prompt": "Make the character speak in a natural way according to the audio."
   },
   {
-    "id": "27b25b43-bc8b-4004-acc1-8634d105a83f",
-    "title": "数字人·人物影像 2",
-    "image": "/sites/aibox/templates/27b25b43-bc8b-4004-acc1-8634d105a83f-cover.jpg",
-    "inputImage": "/sites/aibox/templates/27b25b43-bc8b-4004-acc1-8634d105a83f-input.jpg",
+    "id": "2020757f-609e-41a1-923d-155e2d7b03f4",
+    "title": "数字人·人物影像 6",
+    "image": "/sites/aibox/templates/2020757f-609e-41a1-923d-155e2d7b03f4-cover.jpg",
+    "inputImage": "/sites/aibox/templates/2020757f-609e-41a1-923d-155e2d7b03f4-input.jpg",
+    "inputAudio": "/sites/aibox/templates/2020757f-609e-41a1-923d-155e2d7b03f4-audio.bin",
     "prompt": "Make the character speak in a natural way according to the audio."
+  },
+  {
+    "id": "ffb05498-411e-4978-8466-e3f8e1d58cca",
+    "title": "数字人·创意画面",
+    "image": "/sites/aibox/templates/ffb05498-411e-4978-8466-e3f8e1d58cca-cover.jpg",
+    "inputImage": "/sites/aibox/templates/ffb05498-411e-4978-8466-e3f8e1d58cca-input.jpg",
+    "inputAudio": "/sites/aibox/templates/ffb05498-411e-4978-8466-e3f8e1d58cca-audio.bin",
+    "prompt": "自然说话，表情温婉柔和，头部轻微动作，肢体放松协调，符合民国旗袍美女气质"
   }
 ]

@@ -29,7 +29,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from .credits import CreditPricingError, locked_wallet, refund_task, task_credit_cost, today
 from .config import settings
-from .db import Base, CreditCharge, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, VoiceWork, engine
+from .db import Base, CreditCharge, CreditGrant, CreditWallet, Session, Task, TaskEvent, TaskInputAsset, TaskOutput, TaskRequest, TaskWorkflowSnapshot, Upload, User, VoiceWork, engine
 from .workflows import WorkflowError, build_workflow, extend_driving_video, registry
 from .output_storage import local_output
 
@@ -782,6 +782,37 @@ def current_admin(user: User = Depends(current_user)) -> User:
 def admin_me(user: User = Depends(current_admin)):
     return {'id': user.id, 'email': user.email}
 
+class AdminCreditInput(BaseModel):
+    amount: int = Field(strict=True, ge=1, le=1000000)
+    request_id: uuid.UUID
+
+@app.post('/api/admin/users/{user_id}/credits')
+def admin_grant_credits(user_id: str, data: AdminCreditInput, admin: User = Depends(current_admin), session: DBSession = Depends(db)):
+    target = session.scalar(select(User).where(User.id == user_id).with_for_update())
+    if not target:
+        raise HTTPException(404, '用户不存在')
+    grant_id = str(data.request_id)
+    existing = session.get(CreditGrant, grant_id)
+    if existing:
+        if existing.user_id != user_id or existing.admin_id != admin.id or existing.amount != data.amount:
+            raise HTTPException(409, '请求编号已用于其他加分操作')
+        return {'balance': existing.balance_after}
+    wallet = locked_wallet(session, user_id)
+    if wallet.day != today():
+        wallet.day = today()
+        wallet.balance = 1000 + wallet.pending_refund
+        wallet.pending_refund = 0
+    if wallet.balance > 2147483647 - data.amount:
+        raise HTTPException(422, '积分余额超出上限')
+    wallet.balance += data.amount
+    session.add(CreditGrant(id=grant_id, user_id=user_id, admin_id=admin.id, amount=data.amount, balance_after=wallet.balance))
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, '请求编号已用于其他加分操作')
+    return {'balance': wallet.balance}
+
 @app.get('/api/admin/stats')
 def admin_stats(user: User = Depends(current_admin), session: DBSession = Depends(db)):
     now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -812,11 +843,12 @@ def admin_items(category: Literal['tasks', 'voice', 'uploads', 'users'] = 'tasks
     model = models[category]
     query = select(model) if category == 'users' else select(model, User.email).join(User, model.user_id == User.id)
     hours = {'24h': 24, '7d': 168, '30d': 720}.get(window)
-    if hours: query = query.where(model.created_at >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=hours))
+    if hours and category != 'users': query = query.where(model.created_at >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=hours))
     if category == 'tasks' and kind in ('image', 'video'): query = query.where(Task.kind == kind)
     if category == 'uploads' and kind in ('image', 'video', 'audio'): query = query.where(Upload.content_type.like(f'{kind}/%'))
     limit = max(1, min(limit, 100)); offset = max(0, offset)
-    rows = session.execute(query.order_by(model.created_at.desc(), model.id.desc()).offset(offset).limit(limit + 1)).all()
+    order = (case((User.id == user.id, 0), else_=1), User.created_at.desc(), User.id.desc()) if category == 'users' else (model.created_at.desc(), model.id.desc())
+    rows = session.execute(query.order_by(*order).offset(offset).limit(limit + 1)).all()
     more = len(rows) > limit
     items = []
     for row in rows[:limit]:
@@ -826,6 +858,9 @@ def admin_items(category: Literal['tasks', 'voice', 'uploads', 'users'] = 'tasks
             item.update(kind=obj.kind, status=obj.status, model=obj.model, text=obj.prompt, media=[f'/api/admin/tasks/{obj.id}/outputs/{i}' for i in range(len(obj.outputs or []))])
         elif category == 'voice': item.update(kind='audio', text=obj.text, name=obj.voice_name, media=[f'/api/admin/voice/{obj.id}/content'])
         elif category == 'uploads': item.update(kind=obj.content_type.split('/')[0], name=obj.name, content_type=obj.content_type, media=[f'/api/admin/uploads/{obj.id}/content'])
+        elif category == 'users':
+            wallet = session.get(CreditWallet, obj.id)
+            item['balance'] = wallet.balance if wallet and wallet.day == today() else 0
         items.append(item)
     return {'items': items, 'more': more}
 

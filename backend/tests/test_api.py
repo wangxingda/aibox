@@ -893,3 +893,40 @@ def test_digital_human_modes_not_yet_available(client):
     for mode in ('digital-human-text', 'digital-human-clone'):
         response = client.post('/api/tasks', json={'kind':'video','model':'future','mode':mode}, headers={'Idempotency-Key':mode})
         assert response.status_code == 503
+
+
+def test_admin_credit_grant_permissions_and_idempotency(client, monkeypatch):
+    import uuid
+    from app import main
+    from app.db import CreditGrant, Session
+    assert client.post('/api/admin/users/missing/credits', json={'amount': 10, 'request_id': str(uuid.uuid4())}).status_code == 401
+    register(client, 'admin@example.com')
+    admin_id = client.get('/api/auth/me').json()['id']
+    client.post('/api/auth/logout')
+    target = client.post('/api/auth/register', json={'email': 'target@example.com', 'password': 'password123'}).json()
+    target_id = target['id']
+    request_id = str(uuid.uuid4())
+    path = f'/api/admin/users/{target_id}/credits'
+    assert client.post(path, json={'amount': 50, 'request_id': request_id}).status_code == 403
+    monkeypatch.setattr(main.cfg, 'admin_user_ids', admin_id)
+    client.post('/api/auth/logout')
+    client.post('/api/auth/login', json={'email': 'admin@example.com', 'password': 'password123'})
+    from datetime import datetime
+    from app.db import User
+    with Session() as session:
+        session.get(User, admin_id).created_at = datetime(2000, 1, 1)
+        session.commit()
+    users = client.get('/api/admin/items?category=users&window=24h&limit=1').json()
+    assert users['items'][0]['id'] == admin_id
+    assert users['more'] is True
+    assert client.post(path, json={'amount': 0, 'request_id': request_id}).status_code == 422
+    assert client.post('/api/admin/users/missing/credits', json={'amount': 50, 'request_id': request_id}).status_code == 404
+    assert client.post(path, json={'amount': 50, 'request_id': request_id}).json()['balance'] == 1050
+    assert client.post(path, json={'amount': 50, 'request_id': request_id}).json()['balance'] == 1050
+    assert client.post(path, json={'amount': 51, 'request_id': request_id}).status_code == 409
+    with Session() as session:
+        assert session.get(CreditGrant, request_id).admin_id == admin_id
+    client.post('/api/auth/logout')
+    client.post('/api/auth/login', json={'email': 'target@example.com', 'password': 'password123'})
+    assert client.get('/api/credits').json() == {'balance': 1050, 'claimed': True}
+    assert client.post('/api/credits/claim').json()['balance'] == 1050

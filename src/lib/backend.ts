@@ -1,6 +1,6 @@
 export type BackendUser = { id: string; email: string };
 export type BackendModel = { id: string; kind: "image" | "video"; requires_image: boolean; supports_image: boolean; requires_second_image: boolean; supports_second_image: boolean; requires_video: boolean; supports_video: boolean; requires_prompt: boolean; max_prompt_length: number; fixed_resolution: boolean; resolution_label: string; supported_qualities: string[]; supported_ratios: string[]; supported_durations: string[]; modes: string[]; default_ratio: string };
-export type BackendTask = { id: string; status: string; queue_ahead?: number; progress: number | null; kind: string; prompt: string; model: string; upload_id: string | null; options: { mode?: string | null; quality?: string; ratio?: string; duration?: string; second_upload_id?: string | null; video_upload_id?: string | null }; error: string | null; created_at: string; updated_at: string; outputs: { url: string }[] };
+export type BackendTask = { id: string; status: string; queue_ahead?: number; progress: number | null; kind: string; prompt: string; model: string; upload_id: string | null; options: { mode?: string | null; quality?: string; ratio?: string; duration?: string; second_upload_id?: string | null; video_upload_id?: string | null; audio_upload_id?: string | null }; error: string | null; created_at: string; updated_at: string; outputs: { url: string }[] };
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
