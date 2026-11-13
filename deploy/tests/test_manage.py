@@ -17,6 +17,9 @@ class ManageTests(unittest.TestCase):
         (root / 'git').write_text('''#!/bin/sh
 printf '%s\\n' "$*" >> "$TEST_LOG.git"
 case "$*" in
+  *'lfs version') [ -z "$FAIL_LFS_VERSION" ] || exit 1 ;;
+  *'lfs pull'*) [ -z "$FAIL_LFS_PULL" ] || exit 1 ;;
+  *'lfs ls-files') [ -z "$LFS_POINTER" ] || echo 'abcdef1234 - public/sites/example.mp4' ;;
   *'symbolic-ref --quiet --short HEAD') echo main ;;
   *'config --get branch.main.remote') echo origin ;;
   *'remote get-url origin') echo "${TEST_REMOTE_URL:-https://github.com/wangxingda/aibox.git}" ;;
@@ -77,6 +80,25 @@ if 'app.migrate' in args and os.environ.get('FAIL_MIGRATION'):
         convert = next(i for i, line in enumerate(calls) if line.endswith('remote set-url origin git@github.com:wangxingda/aibox.git'))
         pull = next(i for i, line in enumerate(calls) if line.endswith('pull --ff-only'))
         self.assertLess(convert, pull)
+        lfs_pull = next(i for i, line in enumerate(calls) if 'lfs pull' in line)
+        self.assertLess(pull, lfs_pull)
+
+    def test_build_downloads_lfs_assets(self):
+        result, calls = self.run_script('build')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any('lfs pull' in line for line in (self.root / 'calls.git').read_text().splitlines()))
+        self.assertTrue(any(line.endswith(' build') for line in calls))
+
+    def test_lfs_failures_do_not_build_or_stop_services(self):
+        for command in ('build', 'update'):
+            for failure in ('FAIL_LFS_VERSION', 'FAIL_LFS_PULL', 'LFS_POINTER'):
+                with self.subTest(command=command, failure=failure):
+                    self.env[failure] = '1'
+                    (self.root / 'calls').unlink(missing_ok=True)
+                    result, calls = self.run_script(command)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertFalse(any(line.endswith(' build') or 'stop worker api' in line for line in calls))
+                    del self.env[failure]
 
     def test_update_rejects_other_non_ssh_remotes(self):
         self.env['TEST_REMOTE_URL'] = 'https://example.com/repo.git'

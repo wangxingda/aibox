@@ -33,7 +33,7 @@ backend/.venv/                 本地 Python 虚拟环境（不提交）
 
 ## 安装与启动
 
-需要 Node.js 24 或更新版本、Python 3.11、FFmpeg（用于视频校验）、Git LFS，以及可访问的 MySQL、Redis、ComfyUI。站点视频和音频素材由 Git LFS 管理，克隆前请安装 Git LFS 并执行 `git lfs install`；已有检出可执行 `git lfs pull` 下载素材。构建或部署前确认素材已下载完整。
+需要 Node.js 24 或更新版本、Python 3.11、FFmpeg（用于视频校验）、Git LFS，以及可访问的 MySQL、Redis、ComfyUI。仓库中常见的图片、视频和音频格式以及站点 `.bin` 素材由 Git LFS 管理；克隆前请安装 Git LFS 并执行 `git lfs install`，已有检出可执行 `git lfs pull` 下载素材。新增符合 `.gitattributes` 规则的素材时，正常执行 `git add` 即会通过 LFS 保存；请确认已安装并启用 Git LFS。构建或部署前确认素材已下载完整。
 
 ```bash
 npm ci

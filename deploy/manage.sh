@@ -10,7 +10,29 @@ usage() {
     '默认读取项目目录同级 shared/.env，可通过 AIBOX_ENV_FILE 指定其他环境文件。' \
     'update 拉取当前分支的最新代码，构建镜像并更新服务；工作区必须干净。' \
     'update 会备份数据库和上传文件并运行数据库迁移；可通过 AIBOX_BACKUP_DIR 指定备份目录。' \
+    'build 和 update 会下载并检查 Git LFS 素材；需要安装 Git LFS。' \
     'stop、restart 和 update 保留数据库及上传文件。build 单独构建镜像。'
+}
+
+prepare_lfs_assets() {
+  if ! git lfs version >/dev/null 2>&1; then
+    printf '%s\n' '未找到 Git LFS，请先安装 Git LFS 后重试。' >&2
+    return 1
+  fi
+  printf '%s\n' '下载并检查 Git LFS 素材。'
+  if ! git -C "$root_dir" lfs pull --include='*' --exclude=''; then
+    printf '%s\n' 'Git LFS 素材下载失败，已取消构建；请检查网络和仓库权限。' >&2
+    return 1
+  fi
+  local lfs_files
+  if ! lfs_files=$(git -C "$root_dir" lfs ls-files); then
+    printf '%s\n' '无法检查 Git LFS 素材，已取消构建。' >&2
+    return 1
+  fi
+  if printf '%s\n' "$lfs_files" | grep -Eq '^[0-9a-f]+ - '; then
+    printf '%s\n' '存在未检出的 Git LFS 素材，已取消构建；请检查工作区后重试。' >&2
+    return 1
+  fi
 }
 
 command_name="${1:-}"
@@ -37,13 +59,17 @@ else
 fi
 compose=("${docker_cmd[@]}" compose --env-file "$env_file" -f "$root_dir/deploy/compose.yml")
 case "$command_name" in
-  build) "${compose[@]}" build ;;
+  build) prepare_lfs_assets; "${compose[@]}" build ;;
   start) "${compose[@]}" up -d --no-build ;;
   stop) "${compose[@]}" stop ;;
   restart)
     "${compose[@]}" restart api worker frontend
     ;;
   update)
+    if ! git lfs version >/dev/null 2>&1; then
+      printf '%s\n' '未找到 Git LFS，请先安装 Git LFS 后重试。' >&2
+      exit 1
+    fi
     if [[ -n "$(git -C "$root_dir" status --porcelain)" ]]; then
       printf '%s\n' '工作区有未提交的更改，请先提交或处理后再更新。' >&2
       exit 1
@@ -64,6 +90,7 @@ case "$command_name" in
       *) printf '%s\n' '上游仓库必须使用 SSH 地址；请先配置 Git 远端。' >&2; exit 1 ;;
     esac
     git -C "$root_dir" pull --ff-only
+    prepare_lfs_assets
     old_images=()
     for image in aibox-api:latest aibox-worker:latest aibox-frontend:latest; do
       if image_id=$("${docker_cmd[@]}" image inspect --format '{{.Id}}' "$image" 2>/dev/null); then

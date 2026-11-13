@@ -4,7 +4,7 @@
 
 ## 准备
 
-需要 Docker Engine、Docker Compose 和 Git LFS，服务器能够访问配置的 ComfyUI。克隆前执行 `git lfs install`，已有检出执行 `git lfs pull`，确保站点视频和音频素材下载完整再构建。历史迁移后，旧检出与新历史无法快进，应备份本地改动并重新克隆。`Dockerfile.frontend` 使用 npm 国内镜像；`Dockerfile.backend` 优先使用阿里云 Debian 和 PyPI 镜像，PyPI 失败时回退到官方源；容器基础镜像通过 DaoCloud 镜像拉取。
+需要 Docker Engine、Docker Compose 和 Git LFS，服务器能够访问配置的 ComfyUI。克隆前执行 `git lfs install`；`build` 和 `update` 会下载并检查 Git LFS 素材，下载失败或素材仍是指针时不会构建或停止服务。直接使用 Docker Compose 构建时需先自行执行 `git lfs pull`。历史迁移后，旧检出与新历史无法快进，应备份本地改动并重新克隆。`Dockerfile.frontend` 使用 npm 国内镜像；`Dockerfile.backend` 优先使用阿里云 Debian 和 PyPI 镜像，PyPI 失败时回退到官方源；容器基础镜像通过 DaoCloud 镜像拉取。
 
 在服务器创建位于仓库之外、仅部署用户可读取的环境文件，参考 `deploy/.env.example`，为 MySQL 和 JWT 生成独立的随机值。MySQL 密码应使用 URL 安全字符。`CORS_ORIGINS` 设置为实际访问地址（包括协议和必要端口），多个来源用逗号分隔。不要把环境文件或备份提交到 Git。
 
