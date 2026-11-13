@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     template_dir: str = '../public/sites/aibox/templates'
     task_timeout_seconds: int = 3600
     session_hours: int = 24
+    hits_base_url: str = ""
+    hits_client_id: str = "aibox"
+    hits_client_secret: str = ""
+    hits_callback_url: str = ""
 
     @field_validator('jwt_secret')
     @classmethod

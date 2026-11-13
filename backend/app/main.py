@@ -856,3 +856,6 @@ def admin_delete(category: Literal['tasks', 'voice', 'uploads'], item_id: str, a
     if category == 'tasks': return delete_task(item_id, owner, session)
     if category == 'uploads': return delete_upload(item_id, owner, session)
     return delete_voice_work(item_id, owner, session)
+
+from .sso_routes import install as install_hits_sso
+install_hits_sso(app)

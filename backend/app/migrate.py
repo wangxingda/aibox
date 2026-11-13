@@ -15,6 +15,9 @@ from sqlalchemy.schema import CreateColumn
 from .config import settings
 from .db import Base, SchemaMigration, Task, TaskEvent, TaskInputAsset, TaskOutput, Upload, engine
 
+from . import sso_models  # Register new identity tables for additive migration.
+
+HITS_IDENTITY_VERSION = '20261113_01_hits_identities'
 VERSION = '20261106_01_task_relations'
 PROGRESS_VERSION = '20261106_02_task_progress'
 UPLOAD_DEDUP_VERSION = '20261106_03_upload_dedup'
@@ -40,6 +43,17 @@ def sync_additive_schema(connection, metadata):
             connection.commit()
             log.info('Added column %s.%s', table.fullname, column.name)
 
+def migrate_hits_identities(connection):
+    """Versioned creation of new SSO tables and their identity constraints."""
+    sso_models.ExternalIdentity.__table__.create(connection, checkfirst=True)
+    sso_models.PendingExternalRegistration.__table__.create(connection, checkfirst=True)
+    connection.commit()
+    with DBSession(bind=connection) as session:
+        if not session.get(SchemaMigration, HITS_IDENTITY_VERSION):
+            session.add(SchemaMigration(version=HITS_IDENTITY_VERSION))
+            session.commit()
+
+
 def migrate(database=engine):
     with database.connect() as connection:
         locked = False
@@ -60,6 +74,7 @@ def migrate(database=engine):
                 connection.execute(text('ALTER TABLE tasks ADD COLUMN progress INTEGER NULL DEFAULT 0'))
                 connection.commit()
             sync_additive_schema(connection, Base.metadata)
+            migrate_hits_identities(connection)
             existing = {item['name'] for item in inspect(connection).get_indexes('tasks')}
             for index in Task.__table__.indexes:
                 if index.name in {'ix_tasks_user_kind_created_id', 'ix_tasks_user_created_id'} and index.name not in existing:
