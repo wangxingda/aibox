@@ -33,9 +33,9 @@ def finish_registration(session, token, password, hash_password):
     pending = session.scalar(select(PendingExternalRegistration).where(
         PendingExternalRegistration.token_hash == registration_digest(token)).with_for_update())
     if not pending or pending.expires_at <= utcnow():
-        raise RegistrationError('授权已过期，请重新使用 HITS 登录')
+        raise RegistrationError('授权已过期，请重新使用 点点网登录')
     if session.get(ExternalIdentity, (pending.provider, pending.subject)):
-        raise RegistrationError('此 HITS 账号已经绑定，请重新登录')
+        raise RegistrationError('此 点点网账号已经绑定，请重新登录')
     if session.scalar(select(User.id).where(User.email == pending.email)):
         raise RegistrationError('该邮箱已有 AIBox 账号，请先登录原账号后绑定')
     user = User(id=str(uuid.uuid4()), email=pending.email,

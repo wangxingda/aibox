@@ -34,7 +34,7 @@ export function Auth({ register = false }: { register?: boolean }) {
         <div className="auth-password"><input id="password" name="password" type={visible ? "text" : "password"} autoComplete={register ? "new-password" : "current-password"} placeholder={register ? "请输入至少 8 位密码" : "请输入密码"} minLength={register ? 8 : undefined} required /><button type="button" onClick={() => setVisible(!visible)} aria-label={visible ? "隐藏密码" : "显示密码"}>{visible ? <EyeOff size={18}/> : <Eye size={18}/>}</button></div>
         <button className="auth-submit" type="submit" disabled={pending}>{pending ? "请稍候…" : register ? "注册" : "登录"}</button>
       </form>
-      <button type="button" className="auth-external" onClick={()=>window.location.assign("/api/auth/hits/start")}>使用 HITS 账号登录</button>
+      <button type="button" className="auth-external" onClick={()=>window.location.assign("/api/auth/hits/start")}>使用 点点网账号登录</button>
       <p className="auth-switch">{register ? "已有账户？" : "还没有账户？"} <Link href={register ? "/login" : "/register"}>{register ? "立即登录" : "免费注册"}</Link></p>
       <Link className="auth-external" href="/create">返回创作首页</Link>
     </section>

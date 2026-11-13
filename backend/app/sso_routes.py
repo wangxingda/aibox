@@ -27,7 +27,7 @@ def install(app):
 
     def enabled():
         if not cfg.hits_base_url or not cfg.hits_client_secret or not cfg.hits_callback_url:
-            raise HTTPException(503, 'HITS 登录尚未配置')
+            raise HTTPException(503, '点点网登录尚未配置')
     def cookie(response, name, value, age=600):
         response.set_cookie(name, value, max_age=age, httponly=True,
                             secure=cfg.cookie_secure, samesite='lax', path='/')
@@ -40,7 +40,7 @@ def install(app):
                             options={'require':['exp','aud']})
             return data
         except jwt.InvalidTokenError:
-            raise HTTPException(400, '授权已失效，请重新使用 HITS 登录')
+            raise HTTPException(400, '授权已失效，请重新使用 点点网登录')
 
     @app.get('/api/auth/hits/start')
     def start():
@@ -76,7 +76,7 @@ def install(app):
                 if identity.get('email_verified') is not True or not isinstance(subject,str) or not 1<=len(subject)<=128:
                     raise ValueError()
         except (httpx.HTTPError,ValueError,KeyError,TypeError):
-            raise HTTPException(400,'HITS 授权验证失败，请重新登录')
+            raise HTTPException(400,'点点网授权验证失败，请重新登录')
         existing=session.get(ExternalIdentity,('hits',subject))
         response=RedirectResponse('/create' if existing else '/auth/hits/setup',302);clear(response)
         if existing:
@@ -133,14 +133,14 @@ def install(app):
             raise HTTPException(403,'请求来源不允许')
         row=session.scalar(select(PendingExternalRegistration).where(PendingExternalRegistration.token_hash==registration_digest(hits_pending or '')).with_for_update())
         if not row or row.expires_at<=utcnow():raise HTTPException(400,'授权已过期，请重新登录')
-        if row.failed_attempts >= 5:raise HTTPException(429,'尝试次数过多，请重新使用 HITS 授权')
+        if row.failed_attempts >= 5:raise HTTPException(429,'尝试次数过多，请重新使用 点点网授权')
         user=session.scalar(select(User).where(User.email==row.email).with_for_update())
         if not user or not password_hash.verify(data.password,user.password_hash):
             row.failed_attempts += 1
             session.commit()
             raise HTTPException(401,'原 AIBox 密码不正确')
         if session.get(ExternalIdentity,('hits',row.subject)):
-            raise HTTPException(409,'此 HITS 账号已绑定，请重新登录')
+            raise HTTPException(409,'此 点点网账号已绑定，请重新登录')
         session.add(ExternalIdentity(provider='hits',subject=row.subject,user_id=user.id));session.delete(row)
         try:session.commit()
         except IntegrityError:

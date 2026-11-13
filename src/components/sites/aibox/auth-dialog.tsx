@@ -31,7 +31,7 @@ export function AuthDialog({ onClose, onSuccess }: { onClose: () => void; onSucc
         <label>密码<input name="password" type="password" autoComplete={register ? "new-password" : "current-password"} minLength={register ? 8 : undefined} required /></label>
         <button className="auth-dialog-submit" disabled={pending}>{pending ? "请稍候…" : register ? "注册" : "登录"}</button>
       </form>
-      <button type="button" className="auth-external" onClick={()=>window.location.assign("/api/auth/hits/start")}>使用 HITS 账号登录</button>
+      <button type="button" className="auth-external" onClick={()=>window.location.assign("/api/auth/hits/start")}>使用 点点网账号登录</button>
       <p className="auth-dialog-switch">{register ? "已有账户？" : "还没有账户？"}<button type="button" onClick={() => { setRegister(!register); }}>{register ? "立即登录" : "免费注册"}</button></p>
     </section>
   </div>;
